@@ -1,5 +1,9 @@
 (in-package :z80)
 
+(defparameter logging-enabled nil)
+
+(defun int-to-hex (&rest ints)
+  (format t "~{~X~^ ~}~%" ints))
 
 (defclass cpu ()
   ((ram :initform (make-array 65535) :accessor ram)
@@ -19,6 +23,13 @@
    (hl :initform 0)
    (sp :initform 0 :accessor sp)
    (pc :initform 0 :accessor pc)))
+
+(defmethod load-rom ((cpu cpu) rom-path &key (offset 0))
+  (let ((rom (alexandria:read-file-into-byte-vector rom-path)))
+    (replace (ram cpu) rom :start1 offset)))
+
+(defmethod execute-next-instruction ((cpu cpu))
+  (funcall (microcode (elt opcode-table (elt (ram cpu) (slot-value cpu 'pc)))) cpu))
 
 (defmacro define-register-operators (register-name upper-name lower-name)
   (let ((upper-accessor (intern (format nil "REG-~S" upper-name)))
@@ -64,27 +75,6 @@
 (define-register-operators de d e)
 (define-register-operators hl h l)
 
-(defclass instruction ()
-  ((name :initarg :name)
-   (opcode :initarg :opcode)
-   (size :initarg :size)
-   (cycles :initarg :cycles)
-   (microcode :initarg :microcode :accessor microcode)))
-
-(defparameter opcode-table (make-array 256))
-
-(defmacro define-instruction (name opcode size cycles args &body body)
-
-  `(let* ((inst (make-instance 'instruction
-                               :name ',name
-                               :opcode ,opcode
-                               :size ,size
-                               :cycles ,cycles
-                               :microcode (lambda ,args ,@body))))
-     (defparameter ,name inst)
-     (setf (elt opcode-table ,opcode) ,name)
-     ,name))
-
 (defun dump-registers (cpu)
   (format t "~{~{~2a ~^| ~}~%~}~%"
           (list '("a" "b" "c" "d" "e" "h")
@@ -95,107 +85,134 @@
                       (reg-e cpu)
                       (reg-h cpu)))))
 
-(define-instruction nop #x00 #x1 4 (cpu) )
+(defclass instruction ()
+  ((name :initarg :name)
+   (opcode :initarg :opcode)
+   (size :initarg :size)
+   (cycles :initarg :cycles)
+   (microcode :initarg :microcode :accessor microcode)))
 
-(define-instruction ld-b-b #x40 #x1 4 (cpu) (setf (reg-b cpu) (reg-b cpu)))
-(define-instruction ld-b-c #x41 #x1 4 (cpu) (setf (reg-b cpu) (reg-c cpu)))
-(define-instruction ld-b-d #x42 #x1 4 (cpu) (setf (reg-b cpu) (reg-d cpu)))
-(define-instruction ld-b-e #x43 #x1 4 (cpu) (setf (reg-b cpu) (reg-e cpu)))
-(define-instruction ld-b-h #x44 #x1 4 (cpu) (setf (reg-b cpu) (reg-h cpu)))
-(define-instruction ld-b-l #x45 #x1 4 (cpu) (setf (reg-b cpu) (reg-l cpu)))
-(define-instruction ld-b-hl #x46 #x1 4 (cpu) (setf (reg-b cpu) (reg-hl cpu)))
-(define-instruction ld-b-a #x47 #x1 4 (cpu) (setf (reg-b cpu) (reg-a cpu)))
-(define-instruction ld-c-b #x48 #x1 4 (cpu) (setf (reg-c cpu) (reg-b cpu)))
-(define-instruction ld-c-c #x49 #x1 4 (cpu) (setf (reg-c cpu) (reg-c cpu)))
-(define-instruction ld-c-d #x4A #x1 4 (cpu) (setf (reg-c cpu) (reg-d cpu)))
-(define-instruction ld-c-e #x4B #x1 4 (cpu) (setf (reg-c cpu) (reg-e cpu)))
-(define-instruction ld-c-h #x4C #x1 4 (cpu) (setf (reg-c cpu) (reg-h cpu)))
-(define-instruction ld-c-l #x4D #x1 4 (cpu) (setf (reg-c cpu) (reg-l cpu)))
-(define-instruction ld-c-hl #x4E #x1 4 (cpu) (setf (reg-c cpu) (reg-hl cpu)))
-(define-instruction ld-c-a #x4F #x1 4 (cpu) (setf (reg-c cpu) (reg-a cpu)))
+(defparameter opcode-table (make-array 256))
 
-(define-instruction ld-d-b #x50 #x1 4 (cpu) (setf (reg-d cpu) (reg-b cpu)))
-(define-instruction ld-d-c #x51 #x1 4 (cpu) (setf (reg-d cpu) (reg-c cpu)))
-(define-instruction ld-d-d #x52 #x1 4 (cpu) (setf (reg-d cpu) (reg-d cpu)))
-(define-instruction ld-d-e #x53 #x1 4 (cpu) (setf (reg-d cpu) (reg-e cpu)))
-(define-instruction ld-d-h #x54 #x1 4 (cpu) (setf (reg-d cpu) (reg-h cpu)))
-(define-instruction ld-d-l #x55 #x1 4 (cpu) (setf (reg-d cpu) (reg-l cpu)))
-(define-instruction ld-d-hl #x56 #x1 4 (cpu) (setf (reg-d cpu) (reg-hl cpu)))
-(define-instruction ld-d-a #x57 #x1 4 (cpu) (setf (reg-d cpu) (reg-a cpu)))
-(define-instruction ld-e-b #x58 #x1 4 (cpu) (setf (reg-e cpu) (reg-b cpu)))
-(define-instruction ld-e-c #x59 #x1 4 (cpu) (setf (reg-e cpu) (reg-c cpu)))
-(define-instruction ld-e-d #x5A #x1 4 (cpu) (setf (reg-e cpu) (reg-d cpu)))
-(define-instruction ld-e-e #x5B #x1 4 (cpu) (setf (reg-e cpu) (reg-e cpu)))
-(define-instruction ld-e-h #x5C #x1 4 (cpu) (setf (reg-e cpu) (reg-h cpu)))
-(define-instruction ld-e-l #x5D #x1 4 (cpu) (setf (reg-e cpu) (reg-l cpu)))
-(define-instruction ld-e-hl #x5E #x1 4 (cpu) (setf (reg-e cpu) (reg-hl cpu)))
-(define-instruction ld-e-a #x5F #x1 4 (cpu) (setf (reg-e cpu) (reg-a cpu)))
+(defmacro define-instruction (name opcode size args &body body)
 
-(define-instruction ld-h-b #x60 #x1 4 (cpu) (setf (reg-h cpu) (reg-b cpu)))
-(define-instruction ld-h-c #x61 #x1 4 (cpu) (setf (reg-h cpu) (reg-c cpu)))
-(define-instruction ld-h-d #x62 #x1 4 (cpu) (setf (reg-h cpu) (reg-d cpu)))
-(define-instruction ld-h-e #x63 #x1 4 (cpu) (setf (reg-h cpu) (reg-e cpu)))
-(define-instruction ld-h-h #x64 #x1 4 (cpu) (setf (reg-h cpu) (reg-h cpu)))
-(define-instruction ld-h-l #x65 #x1 4 (cpu) (setf (reg-h cpu) (reg-l cpu)))
-(define-instruction ld-h-hl #x66 #x1 4 (cpu) (setf (reg-h cpu) (reg-hl cpu)))
-(define-instruction ld-h-a #x67 #x1 4 (cpu) (setf (reg-h cpu) (reg-a cpu)))
-(define-instruction ld-l-b #x68 #x1 4 (cpu) (setf (reg-l cpu) (reg-b cpu)))
-(define-instruction ld-l-c #x69 #x1 4 (cpu) (setf (reg-l cpu) (reg-c cpu)))
-(define-instruction ld-l-d #x6A #x1 4 (cpu) (setf (reg-l cpu) (reg-d cpu)))
-(define-instruction ld-l-e #x6B #x1 4 (cpu) (setf (reg-l cpu) (reg-e cpu)))
-(define-instruction ld-l-h #x6C #x1 4 (cpu) (setf (reg-l cpu) (reg-h cpu)))
-(define-instruction ld-l-l #x6D #x1 4 (cpu) (setf (reg-l cpu) (reg-l cpu)))
-(define-instruction ld-l-hl #x6E #x1 4 (cpu) (setf (reg-l cpu) (reg-hl cpu)))
-(define-instruction ld-l-a #x6F #x1 4 (cpu) (setf (reg-l cpu) (reg-a cpu)))
+  `(let* ((inst (make-instance 'instruction
+                               :name ',name
+                               :opcode ,opcode
+                               :size ,size
+                               :microcode (lambda ,args ,@body))))
+     (defparameter ,name inst)
+     (setf (elt opcode-table ,opcode) ,name)
+     inst))
 
-(define-instruction ld-hl-b #x70 #x1 4 (cpu) (setf (reg-hl cpu) (reg-b cpu)))
-(define-instruction ld-hl-c #x71 #x1 4 (cpu) (setf (reg-hl cpu) (reg-c cpu)))
-(define-instruction ld-hl-d #x72 #x1 4 (cpu) (setf (reg-hl cpu) (reg-d cpu)))
-(define-instruction ld-hl-e #x73 #x1 4 (cpu) (setf (reg-hl cpu) (reg-e cpu)))
-(define-instruction ld-hl-h #x74 #x1 4 (cpu) (setf (reg-hl cpu) (reg-h cpu)))
-(define-instruction ld-hl-l #x75 #x1 4 (cpu) (setf (reg-hl cpu) (reg-l cpu)))
-(define-instruction halt #x76 #x1 4 (cpu) (halt cpu))
-(define-instruction ld-hl-a #x77 #x1 4 (cpu) (setf (reg-hl cpu) (reg-a cpu)))
-(define-instruction ld-a-b #x78 #x1 4 (cpu) (setf (reg-a cpu) (reg-b cpu)))
-(define-instruction ld-a-c #x79 #x1 4 (cpu) (setf (reg-a cpu) (reg-c cpu)))
-(define-instruction ld-a-d #x7A #x1 4 (cpu) (setf (reg-a cpu) (reg-d cpu)))
-(define-instruction ld-a-e #x7B #x1 4 (cpu) (setf (reg-a cpu) (reg-e cpu)))
-(define-instruction ld-a-h #x7C #x1 4 (cpu) (setf (reg-a cpu) (reg-h cpu)))
-(define-instruction ld-a-l #x7D #x1 4 (cpu) (setf (reg-a cpu) (reg-l cpu)))
-(define-instruction ld-a-hl #x7E #x1 4 (cpu) (setf (reg-a cpu) (reg-hl cpu)))
-(define-instruction ld-a-a #x7F #x1 4 (cpu) (setf (reg-a cpu) (reg-a cpu)))
+(defun mem-hl (cpu)
+  (elt (ram cpu) (reg-hl cpu)))
+
+(defun (setf mem-hl) (value cpu)
+  (setf (elt (ram cpu) (reg-hl cpu)) value))
+
+(define-instruction nop #x00 #x1 (cpu))
+
+(define-instruction ld-b-b #x40 #x1 (cpu) (setf (reg-b cpu) (reg-b cpu)))
+(define-instruction ld-b-c #x41 #x1 (cpu) (setf (reg-b cpu) (reg-c cpu)))
+(define-instruction ld-b-d #x42 #x1 (cpu) (setf (reg-b cpu) (reg-d cpu)))
+(define-instruction ld-b-e #x43 #x1 (cpu) (setf (reg-b cpu) (reg-e cpu)))
+(define-instruction ld-b-h #x44 #x1 (cpu) (setf (reg-b cpu) (reg-h cpu)))
+(define-instruction ld-b-l #x45 #x1 (cpu) (setf (reg-b cpu) (reg-l cpu)))
+(define-instruction ld-b-hl #x46 #x1 (cpu) (setf (reg-b cpu) (mem-hl cpu)))
+(define-instruction ld-b-a #x47 #x1 (cpu) (setf (reg-b cpu) (reg-a cpu)))
+(define-instruction ld-c-b #x48 #x1 (cpu) (setf (reg-c cpu) (reg-b cpu)))
+(define-instruction ld-c-c #x49 #x1 (cpu) (setf (reg-c cpu) (reg-c cpu)))
+(define-instruction ld-c-d #x4A #x1 (cpu) (setf (reg-c cpu) (reg-d cpu)))
+(define-instruction ld-c-e #x4B #x1 (cpu) (setf (reg-c cpu) (reg-e cpu)))
+(define-instruction ld-c-h #x4C #x1 (cpu) (setf (reg-c cpu) (reg-h cpu)))
+(define-instruction ld-c-l #x4D #x1 (cpu) (setf (reg-c cpu) (reg-l cpu)))
+(define-instruction ld-c-hl #x4E #x1 (cpu) (setf (reg-c cpu) (mem-hl cpu)))
+(define-instruction ld-c-a #x4F #x1 (cpu) (setf (reg-c cpu) (reg-a cpu)))
+
+(define-instruction ld-d-b #x50 #x1 (cpu) (setf (reg-d cpu) (reg-b cpu)))
+(define-instruction ld-d-c #x51 #x1 (cpu) (setf (reg-d cpu) (reg-c cpu)))
+(define-instruction ld-d-d #x52 #x1 (cpu) (setf (reg-d cpu) (reg-d cpu)))
+(define-instruction ld-d-e #x53 #x1 (cpu) (setf (reg-d cpu) (reg-e cpu)))
+(define-instruction ld-d-h #x54 #x1 (cpu) (setf (reg-d cpu) (reg-h cpu)))
+(define-instruction ld-d-l #x55 #x1 (cpu) (setf (reg-d cpu) (reg-l cpu)))
+(define-instruction ld-d-hl #x56 #x1 (cpu) (setf (reg-d cpu) (mem-hl cpu)))
+(define-instruction ld-d-a #x57 #x1 (cpu) (setf (reg-d cpu) (reg-a cpu)))
+(define-instruction ld-e-b #x58 #x1 (cpu) (setf (reg-e cpu) (reg-b cpu)))
+(define-instruction ld-e-c #x59 #x1 (cpu) (setf (reg-e cpu) (reg-c cpu)))
+(define-instruction ld-e-d #x5A #x1 (cpu) (setf (reg-e cpu) (reg-d cpu)))
+(define-instruction ld-e-e #x5B #x1 (cpu) (setf (reg-e cpu) (reg-e cpu)))
+(define-instruction ld-e-h #x5C #x1 (cpu) (setf (reg-e cpu) (reg-h cpu)))
+(define-instruction ld-e-l #x5D #x1 (cpu) (setf (reg-e cpu) (reg-l cpu)))
+(define-instruction ld-e-hl #x5E #x1 (cpu) (setf (reg-e cpu) (mem-hl cpu)))
+(define-instruction ld-e-a #x5F #x1 (cpu) (setf (reg-e cpu) (reg-a cpu)))
+
+(define-instruction ld-h-b #x60 #x1 (cpu) (setf (reg-h cpu) (reg-b cpu)))
+(define-instruction ld-h-c #x61 #x1 (cpu) (setf (reg-h cpu) (reg-c cpu)))
+(define-instruction ld-h-d #x62 #x1 (cpu) (setf (reg-h cpu) (reg-d cpu)))
+(define-instruction ld-h-e #x63 #x1 (cpu) (setf (reg-h cpu) (reg-e cpu)))
+(define-instruction ld-h-h #x64 #x1 (cpu) (setf (reg-h cpu) (reg-h cpu)))
+(define-instruction ld-h-l #x65 #x1 (cpu) (setf (reg-h cpu) (reg-l cpu)))
+(define-instruction ld-h-hl #x66 #x1 (cpu) (setf (reg-h cpu) (mem-hl cpu)))
+(define-instruction ld-h-a #x67 #x1 (cpu) (setf (reg-h cpu) (reg-a cpu)))
+(define-instruction ld-l-b #x68 #x1 (cpu) (setf (reg-l cpu) (reg-b cpu)))
+(define-instruction ld-l-c #x69 #x1 (cpu) (setf (reg-l cpu) (reg-c cpu)))
+(define-instruction ld-l-d #x6A #x1 (cpu) (setf (reg-l cpu) (reg-d cpu)))
+(define-instruction ld-l-e #x6B #x1 (cpu) (setf (reg-l cpu) (reg-e cpu)))
+(define-instruction ld-l-h #x6C #x1 (cpu) (setf (reg-l cpu) (reg-h cpu)))
+(define-instruction ld-l-l #x6D #x1 (cpu) (setf (reg-l cpu) (reg-l cpu)))
+(define-instruction ld-l-hl #x6E #x1 (cpu) (setf (reg-l cpu) (mem-hl cpu)))
+(define-instruction ld-l-a #x6F #x1 (cpu) (setf (reg-l cpu) (reg-a cpu)))
+
+(define-instruction ld-hl-b #x70 #x1 (cpu) (setf (mem-hl cpu) (reg-b cpu)))
+(define-instruction ld-hl-c #x71 #x1 (cpu) (setf (mem-hl cpu) (reg-c cpu)))
+(define-instruction ld-hl-d #x72 #x1 (cpu) (setf (mem-hl cpu) (reg-d cpu)))
+(define-instruction ld-hl-e #x73 #x1 (cpu) (setf (mem-hl cpu) (reg-e cpu)))
+(define-instruction ld-hl-h #x74 #x1 (cpu) (setf (mem-hl cpu) (reg-h cpu)))
+(define-instruction ld-hl-l #x75 #x1 (cpu) (setf (mem-hl cpu) (reg-l cpu)))
+(define-instruction halt #x76 #x1 (cpu) (halt cpu))
+(define-instruction ld-hl-a #x77 #x1 (cpu) (setf (mem-hl cpu) (reg-a cpu)))
+(define-instruction ld-a-b #x78 #x1 (cpu) (setf (reg-a cpu) (reg-b cpu)))
+(define-instruction ld-a-c #x79 #x1 (cpu) (setf (reg-a cpu) (reg-c cpu)))
+(define-instruction ld-a-d #x7A #x1 (cpu) (setf (reg-a cpu) (reg-d cpu)))
+(define-instruction ld-a-e #x7B #x1 (cpu) (setf (reg-a cpu) (reg-e cpu)))
+(define-instruction ld-a-h #x7C #x1 (cpu) (setf (reg-a cpu) (reg-h cpu)))
+(define-instruction ld-a-l #x7D #x1 (cpu) (setf (reg-a cpu) (reg-l cpu)))
+(define-instruction ld-a-hl #x7E #x1 (cpu) (setf (reg-a cpu) (mem-hl cpu)))
+(define-instruction ld-a-a #x7F #x1 (cpu) (setf (reg-a cpu) (reg-a cpu)))
 
 ;; 16-bit inc-XX's -- probably doesn't work
-(define-instruction inc-bc #x03 #x1 6 (cpu) (setf (reg-bc cpu) (+1 reg-bc cpu)))
+(define-instruction inc-bc #x03 #x1 (cpu) (setf (reg-bc cpu) (+1 reg-bc cpu)))
 
 ;; 8-bit inc-X's
-(define-instruction inc-b #x04 #x1 4 (cpu) (setf (reg-b cpu) (1+ (reg-b cpu))))
-(define-instruction inc-d #x14 #x1 4 (cpu) (setf (reg-d cpu) (1+ (reg-d cpu))))
-(define-instruction inc-h #x24 #x1 4 (cpu) (setf (reg-h cpu) (1+ (reg-h cpu))))
-(define-instruction inc-c #x0C #x1 4 (cpu) (setf (reg-c cpu) (1+ (reg-c cpu))))
-(define-instruction inc-e #x1C #x1 4 (cpu) (setf (reg-e cpu) (1+ (reg-e cpu))))
-(define-instruction inc-l #x2C #x1 4 (cpu) (setf (reg-l cpu) (1+ (reg-l cpu))))
-(define-instruction inc-a #x3C #x1 4 (cpu) (setf (reg-a cpu) (1+ (reg-a cpu))))
-;; inc-hl needs ram access
-(define-instruction inc-hl #x34 #x1 4 (cpu) (setf (reg-hl cpu) (1+ (reg-hl cpu))))
+(define-instruction inc-b #x04 #x1 (cpu) (setf (reg-b cpu) (1+ (reg-b cpu))))
+(define-instruction inc-d #x14 #x1 (cpu) (setf (reg-d cpu) (1+ (reg-d cpu))))
+(define-instruction inc-h #x24 #x1 (cpu) (setf (reg-h cpu) (1+ (reg-h cpu))))
+(define-instruction inc-c #x0C #x1 (cpu) (setf (reg-c cpu) (1+ (reg-c cpu))))
+(define-instruction inc-e #x1C #x1 (cpu) (setf (reg-e cpu) (1+ (reg-e cpu))))
+(define-instruction inc-l #x2C #x1 (cpu) (setf (reg-l cpu) (1+ (reg-l cpu))))
+(define-instruction inc-a #x3C #x1 (cpu) (setf (reg-a cpu) (1+ (reg-a cpu))))
 
+;; inc-hl needs ram access
+(define-instruction inc-hl #x34 #x1 (cpu) (setf (reg-hl cpu) (1+ (reg-hl cpu))))
+
+;; (define-instruction in-a #xDB #x2 (cpu)
+;;   (
 
 
 (defun halt (cpu)
   (setf (slot-value cpu 'halted?) t))
 
-(defun emulate (cpu instructions)
+(defun emulate-rom (cpu rom-path)
+  (load-rom cpu rom-path)
+  (emulate cpu)
+
+(defun emulate (cpu)
   (loop do
        (progn
-         ;; (dump-registers cpu)
-         (funcall (microcode (elt opcode-table (elt instructions (slot-value cpu 'pc)))) cpu)
+         (execute-next-instruction cpu)
          (incf (slot-value cpu 'pc) 1))
-       while (not (slot-value cpu 'halted?))))
+     while (not (slot-value cpu 'halted?))))
 
-(let* ((c (make-instance 'cpu))
-       (instructions
-        (slot-value c 'ram)
-         ;; (list ld-b-a inc-b ld-c-b inc-c ld-d-c inc-d ld-e-d inc-e
-         ;;       ld-h-e inc-h halt)
-         ))
-  (emulate c instructions))
+(let* ((c (make-instance 'cpu)))
+  (emulate c "/home/xeno/dev/z80/c-tests/next.rom"))
