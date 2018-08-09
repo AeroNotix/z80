@@ -224,7 +224,7 @@
          (incf max-
          (execute-next-instruction cpu)
          (incf (slot-value cpu 'pc) 1))
-     while (not (slot-value cpu 'halted?))))
+     while (not (slot-value cpu 'halted?))))))
 
 (let* ((c (make-instance 'cpu)))
   (emulate-rom c "/home/xeno/dev/z80/c-tests/next.rom"))
