@@ -5,6 +5,7 @@
   :licence "BSD"
   :serial t
   :components ((:file "package")
-               (:file "z80"))
+               (:file "z80")
+               (:file "instructions"))
   :depends-on (:alexandria
                :flexi-streams))
