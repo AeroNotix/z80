@@ -24,12 +24,23 @@
    (sp :initform 0 :accessor sp)
    (pc :initform 0 :accessor pc)))
 
-(defmethod load-rom ((cpu cpu) rom-path &key (offset 0))
+(defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
+  (replace (ram cpu) rom :start1 offset))
+
+(defmethod load-ram-from-rom-file ((cpu cpu) rom-path &key (offset 0))
   (let ((rom (alexandria:read-file-into-byte-vector rom-path)))
-    (replace (ram cpu) rom :start1 offset)))
+    (load-ram-from-seq cpu rom :offset offset)))
+
+(defmethod read-word ((cpu cpu) &key (address (pc cpu)))
+  (logior (logand #xFFFF (elt (ram cpu) (1+ address)))
+          (logand #xFFFF (ash (elt (ram cpu) address) 8))))
 
 (defmethod execute-next-instruction ((cpu cpu))
-  (funcall (microcode (elt opcode-table (elt (ram cpu) (slot-value cpu 'pc)))) cpu))
+  (let ((next-instruction (elt (ram cpu) (slot-value cpu 'pc))))
+    (when logging-enabled
+      (format t "NEXT INSTRUCTION: ~X~%" next-instruction))
+    (incf (sp cpu))
+    (funcall (microcode (elt opcode-table next-instruction)) cpu)))
 
 (defmacro define-register-operators (register-name upper-name lower-name)
   (let ((upper-accessor (intern (format nil "REG-~S" upper-name)))
@@ -92,7 +103,7 @@
    (cycles :initarg :cycles)
    (microcode :initarg :microcode :accessor microcode)))
 
-(defparameter opcode-table (make-array 256))
+(defparameter opcode-table (make-array 257 ))
 
 (defmacro define-instruction (name opcode size args &body body)
 
@@ -196,23 +207,24 @@
 ;; inc-hl needs ram access
 (define-instruction inc-hl #x34 #x1 (cpu) (setf (reg-hl cpu) (1+ (reg-hl cpu))))
 
-;; (define-instruction in-a #xDB #x2 (cpu)
-;;   (
-
+(define-instruction jp-nn #xC3 #x3 (cpu)
+  (setf (pc cpu) (read-word cpu)))
 
 (defun halt (cpu)
   (setf (slot-value cpu 'halted?) t))
 
-(defun emulate-rom (cpu rom-path)
-  (load-rom cpu rom-path)
-  (emulate cpu)
+(defun emulate-rom (cpu rom-path &key (max-instructions -1))
+  (load-ram-from-rom-file cpu rom-path)
+  (emulate cpu))
 
-(defun emulate (cpu)
+(defun emulate (cpu &key (max-instructions -1))
+  (let
   (loop do
        (progn
+         (incf max-
          (execute-next-instruction cpu)
          (incf (slot-value cpu 'pc) 1))
      while (not (slot-value cpu 'halted?))))
 
 (let* ((c (make-instance 'cpu)))
-  (emulate c "/home/xeno/dev/z80/c-tests/next.rom"))
+  (emulate-rom c "/home/xeno/dev/z80/c-tests/next.rom"))
