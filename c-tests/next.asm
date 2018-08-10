@@ -1,4 +1,4 @@
-cd ;ROM programs for Z80 computer
+;ROM programs for Z80 computer
 ;Version 4 2/17/03
 	.ORG 0000H
 	JP 0020H	;Jump to start of programs
@@ -8,12 +8,12 @@ cd ;ROM programs for Z80 computer
 	IN A,(1)
 	LD H,A
 	JP (HL)
-;; LOOP1	IN A,(0)	;Simple port reflector
-;; 	OUT (0),A
-;; 	IN A,(1)
-;; 	OUT (1),A
-;; 	JP LOOP1
-;; 	LD A,00H	;Simple counter
+LOOP1	IN A,(0)	;Simple port reflector
+	OUT (0),A
+	IN A,(1)
+	OUT (1),A
+	JP LOOP1
+	LD A,00H	;Simple counter
 ;; LOOP2	OUT (0),A
 ;; 	INC A
 ;; 	JP LOOP2
