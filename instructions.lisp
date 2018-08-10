@@ -2,6 +2,7 @@
 
 (define-instruction nop #x00 #x1 (cpu))
 
+;; LD-x{,y} instructions
 (define-instruction ld-b-b #x40 #x1 (cpu) (setf (reg-b cpu) (reg-b cpu)))
 (define-instruction ld-b-c #x41 #x1 (cpu) (setf (reg-b cpu) (reg-c cpu)))
 (define-instruction ld-b-d #x42 #x1 (cpu) (setf (reg-b cpu) (reg-d cpu)))
@@ -85,5 +86,13 @@
 ;; inc-hl needs ram access
 (define-instruction inc-hl #x34 #x1 (cpu) (setf (reg-hl cpu) (1+ (reg-hl cpu))))
 
+;; Jumps
 (define-instruction jp-nn #xC3 #x3 (cpu)
-  (setf (pc cpu) (read-word cpu)))
+  (setf (pc cpu) (fetch-word cpu)))
+
+(define-instruction jp-hl #xE9 #x1 (cpu)
+  (setf (pc cpu) (reg-hl cpu)))
+
+;; I/O instructions
+(define-instruction in-a-nn #xDB #x2 (cpu)
+  (setf (reg-a cpu) (read-port cpu (fetch-byte-from-ram cpu))))
