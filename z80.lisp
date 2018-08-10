@@ -2,6 +2,11 @@
 
 (defparameter logging-enabled nil)
 
+;; put this somewhere better, external library?
+(defconstant single-float-positive-infinity
+  #+sbcl sb-ext:single-float-positive-infinity
+  #-sbcl most-positive-single-float)
+
 (defun spy (term)
   (format t "~A~%" term)
   term)
@@ -159,11 +164,14 @@
 (defun halt (cpu)
   (setf (slot-value cpu 'halted?) t))
 
-(defun emulate-rom (cpu rom-path &key (max-instructions -1))
+(defun emulate-rom (cpu rom-path &key (max-instructions single-float-positive-infinity))
   (load-ram-from-rom-file cpu rom-path)
-  (emulate cpu))
+  (emulate cpu :max-instructions max-instructions))
 
-(defun emulate (cpu)
-  (loop do
-       (execute-next-instruction cpu)
-     while (not (slot-value cpu 'halted?))))
+(defun emulate (cpu &key (max-instructions single-float-positive-infinity))
+  (let ((num-instructions 0))
+    (loop do
+         (execute-next-instruction cpu)
+         (incf num-instructions)
+       while (and (not (>= num-instructions max-instructions))
+                  (not (slot-value cpu 'halted?))))))
