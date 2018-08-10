@@ -72,7 +72,7 @@
 (define-instruction ld-a-a #x7F #x1 (cpu) (setf (reg-a cpu) (reg-a cpu)))
 
 ;; 16-bit inc-XX's -- probably doesn't work
-(define-instruction inc-bc #x03 #x1 (cpu) (setf (reg-bc cpu) (+1 reg-bc cpu)))
+(define-instruction inc-bc #x03 #x1 (cpu) (setf (reg-bc cpu) (1+ reg-bc cpu)))
 
 ;; 8-bit inc-X's
 (define-instruction inc-b #x04 #x1 (cpu) (setf (reg-b cpu) (1+ (reg-b cpu))))
