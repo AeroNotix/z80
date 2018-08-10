@@ -2,13 +2,22 @@
 
 (defparameter logging-enabled nil)
 
+(defun spy (term)
+  (format t "~A~%" term)
+  term)
+
 (defun int-to-hex (&rest ints)
   (format t "~{~X~^ ~}~%" ints))
 
 (defclass cpu ()
-  ((ram :initform (make-array 65535) :accessor ram)
+  ((ram :initform (make-array 655) :accessor ram)
    (elapsed-cycles :initform 0)
    (halted? :initform nil)
+   ;; This z80 emulator only implements the CPU. This peripherals list
+   ;; allows code using the emulator to attach peripherals on the I/O
+   ;; ports that will be written to/read from when the IN/OUT
+   ;; instructions are executed.
+   (peripherals :initform nil :accessor peripherals)
    ;; AF: 8-bit accumulator (A) and flag bits (F) carry, zero, minus,
    ;;     parity/overflow, half-carry (used for BCD), and an
    ;;     Add/Subtract flag (usually called N) also for BCD
@@ -24,6 +33,11 @@
    (sp :initform 0 :accessor sp)
    (pc :initform 0 :accessor pc)))
 
+(defmethod debug-cpu ((cpu cpu))
+  (let ((next-instruction (elt (ram cpu) (slot-value cpu 'pc))))
+    (format t "NEXT INSTRUCTION RAW: ~X / ~A~%" next-instruction next-instruction)
+    (format t "PC: ~D~%" (pc cpu))))
+
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
   (replace (ram cpu) rom :start1 offset))
 
@@ -31,16 +45,36 @@
   (let ((rom (alexandria:read-file-into-byte-vector rom-path)))
     (load-ram-from-seq cpu rom :offset offset)))
 
+(defmethod read-byte-from-ram ((cpu cpu) &key (address (pc cpu)))
+  (logand #xFFFF (elt (ram cpu) address)))
+
+(defmethod fetch-byte-from-ram ((cpu cpu))
+  (read-byte-from-ram cpu :address (1+ (pc cpu))))
+
 (defmethod read-word ((cpu cpu) &key (address (pc cpu)))
-  (logior (logand #xFFFF (elt (ram cpu) (1+ address)))
-          (logand #xFFFF (ash (elt (ram cpu) address) 8))))
+  (spy (logior (logand #xFFFF (elt (ram cpu) address))
+               (logand #xFFFF (ash (elt (ram cpu) (1+ address)) 8)))))
+
+(defmethod fetch-word ((cpu cpu))
+  (read-word cpu :address (1+ (pc cpu))))
+
+(defmethod read-port ((cpu cpu) port-id)
+  (let ((peripheral (nth port-id (peripherals cpu))))
+    (if peripheral
+        (read-from peripheral)
+        0)))
 
 (defmethod execute-next-instruction ((cpu cpu))
-  (let ((next-instruction (elt (ram cpu) (slot-value cpu 'pc))))
+  (let* ((next-instruction (elt (ram cpu) (slot-value cpu 'pc)))
+         (opcode (elt opcode-table next-instruction))
+         (orig-pc (pc cpu)))
     (when logging-enabled
-      (format t "NEXT INSTRUCTION: ~X~%" next-instruction))
-    (incf (sp cpu))
-    (funcall (microcode (elt opcode-table next-instruction)) cpu)))
+      (debug-cpu cpu))
+    (when (eq 0 opcode)
+      (error (format nil "Unknown instruction: ~S~%" next-instruction)))
+    (funcall (microcode opcode) cpu)
+    (when (eq orig-pc (pc cpu))
+      (incf (pc cpu) (size opcode)))))
 
 (defmacro define-register-operators (register-name upper-name lower-name)
   (let ((upper-accessor (intern (format nil "REG-~S" upper-name)))
@@ -99,11 +133,11 @@
 (defclass instruction ()
   ((name :initarg :name)
    (opcode :initarg :opcode)
-   (size :initarg :size)
+   (size :initarg :size :accessor size)
    (cycles :initarg :cycles)
    (microcode :initarg :microcode :accessor microcode)))
 
-(defparameter opcode-table (make-array 257 ))
+(defparameter opcode-table (make-array 257))
 
 (defmacro define-instruction (name opcode size args &body body)
 
@@ -130,12 +164,6 @@
   (emulate cpu))
 
 (defun emulate (cpu)
-  (let
   (loop do
-       (progn
-         (execute-next-instruction cpu)
-         (incf (slot-value cpu 'pc) 1))
-     while (not (slot-value cpu 'halted?)))))
-
-(let* ((c (make-instance 'cpu)))
-  (emulate-rom c "/home/xeno/dev/z80/c-tests/next.rom"))
+       (execute-next-instruction cpu)
+     while (not (slot-value cpu 'halted?))))
