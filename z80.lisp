@@ -8,21 +8,22 @@
   #-sbcl most-positive-single-float)
 
 (defun spy (term)
-  (format t "~A~%" term)
+  (when logging-enabled
+    (format t "~A~%" term))
   term)
 
 (defun int-to-hex (&rest ints)
   (format t "~{~X~^ ~}~%" ints))
 
 (defclass cpu ()
-  ((ram :initform (make-array 655) :accessor ram)
+  ((ram :initform (make-array 65535) :accessor ram)
    (elapsed-cycles :initform 0)
    (halted? :initform nil)
    ;; This z80 emulator only implements the CPU. This peripherals list
    ;; allows code using the emulator to attach peripherals on the I/O
    ;; ports that will be written to/read from when the IN/OUT
    ;; instructions are executed.
-   (peripherals :initform nil :accessor peripherals)
+   (peripherals :initform nil :accessor peripherals :initarg :peripherals)
    ;; AF: 8-bit accumulator (A) and flag bits (F) carry, zero, minus,
    ;;     parity/overflow, half-carry (used for BCD), and an
    ;;     Add/Subtract flag (usually called N) also for BCD
@@ -40,8 +41,9 @@
 
 (defmethod debug-cpu ((cpu cpu))
   (let ((next-instruction (elt (ram cpu) (slot-value cpu 'pc))))
-    (format t "NEXT INSTRUCTION RAW: ~X / ~A~%" next-instruction next-instruction)
-    (format t "PC: ~D~%" (pc cpu))))
+    (format t "NEXT INSTRUCTION : ~X / ~A PC: ~D~%"
+            next-instruction next-instruction (pc cpu))
+    (format t "RAM: ~A~%" (ram cpu))))
 
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
   (replace (ram cpu) rom :start1 offset))
@@ -70,13 +72,15 @@
         0)))
 
 (defmethod execute-next-instruction ((cpu cpu))
-  (let* ((next-instruction (elt (ram cpu) (slot-value cpu 'pc)))
+  (let* ((next-instruction (elt (ram cpu) (pc cpu)))
          (opcode (elt opcode-table next-instruction))
          (orig-pc (pc cpu)))
     (when logging-enabled
       (debug-cpu cpu))
     (when (eq 0 opcode)
-      (error (format nil "Unknown instruction: ~S~%" next-instruction)))
+      (error
+       (format nil "Unknown instruction: ~X / position: ~S"
+               next-instruction (pc cpu))))
     (funcall (microcode opcode) cpu)
     (when (eq orig-pc (pc cpu))
       (incf (pc cpu) (size opcode)))))
@@ -174,4 +178,5 @@
          (execute-next-instruction cpu)
          (incf num-instructions)
        while (and (not (>= num-instructions max-instructions))
-                  (not (slot-value cpu 'halted?))))))
+                  (not (slot-value cpu 'halted?))))
+    cpu))

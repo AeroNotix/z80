@@ -2,6 +2,9 @@
 
 (define-instruction nop     #x00 #x1 (cpu))
 
+;; Load immediate instructions
+(define-instruction ld-a-n #x3E #x2 (cpu) (setf (reg-a cpu) (read-byte-from-ram cpu)))
+
 ;; LD-x{,y} instructions
 (define-instruction ld-b-b  #x40 #x1 (cpu) (setf (reg-b cpu) (reg-b cpu)))
 (define-instruction ld-b-c  #x41 #x1 (cpu) (setf (reg-b cpu) (reg-c cpu)))
