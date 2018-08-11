@@ -3,6 +3,23 @@
 (define-instruction nop     #x00 #x1 (cpu))
 
 ;; Load immediate instructions
+(define-instruction ld-b-n #x06 #x2 (cpu) (setf (reg-b cpu) (read-byte-from-ram cpu)))
+(define-instruction ld-d-n #x16 #x2 (cpu) (setf (reg-d cpu) (read-byte-from-ram cpu)))
+(define-instruction ld-h-n #x26 #x2 (cpu) (setf (reg-h cpu) (read-byte-from-ram cpu)))
+(define-instruction ld-hl-n #x36 #x2 (cpu) (setf (reg-h cpu) (setf (mem-hl cpu)
+                                                                     (read-byte-from-ram cpu))))
+(define-instruction ld-a-bc #x0A #x2 (cpu) ;; load (bc) into a
+  )
+(define-instruction ld-a-de #x1A #x2 (cpu) ;; load (de) into a
+  )
+(define-instruction ld-hl-nn #x2A #x3 (cpu)
+  (setf (reg-hl cpu) (elt (ram cpu) (fetch-word cpu))))
+(define-instruction ld-a-nn #x3A #x2 (cpu)
+  (setf (reg-a cpu) (elt (ram cpu) (fetch-word cpu))))
+
+(define-instruction ld-c-n #x0E #x2 (cpu) (setf (reg-c cpu) (read-byte-from-ram cpu)))
+(define-instruction ld-e-n #x1E #x2 (cpu) (setf (reg-e cpu) (read-byte-from-ram cpu)))
+(define-instruction ld-l-n #x2E #x2 (cpu) (setf (reg-l cpu) (read-byte-from-ram cpu)))
 (define-instruction ld-a-n #x3E #x2 (cpu) (setf (reg-a cpu) (read-byte-from-ram cpu)))
 
 ;; LD-x{,y} instructions
@@ -88,6 +105,16 @@
 
 ;; inc-hl needs ram access
 (define-instruction inc-hl  #x34 #x1 (cpu) (setf (reg-hl cpu) (1+ (reg-hl cpu))))
+
+(define-instruction xor-b #xA8 #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-b cpu))))
+(define-instruction xor-c #xA9 #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-c cpu))))
+(define-instruction xor-d #xAA #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-d cpu))))
+(define-instruction xor-e #xAB #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-e cpu))))
+(define-instruction xor-h #xAC #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-h cpu))))
+(define-instruction xor-l #xAD #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-l cpu))))
+(define-instruction xor-z #xAE #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (mem-hl cpu))))
+(define-instruction xor-a #xAF #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-a cpu))))
+(define-instruction xor-n #xEE #x2 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (read-byte-from-ram cpu))))
 
 ;; Jumps
 (define-instruction jp-nn #xC3 #x3 (cpu)
