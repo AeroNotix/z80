@@ -8,3 +8,4 @@
     JP (HL)
     .ORG 0050H                  ; Offset the ROM again to give a known address for the next instruction
     LD A, 123                   ; Write 123 into A
+    HALT

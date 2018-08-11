@@ -1,2 +1,3 @@
 (defpackage z80
-  (:use :common-lisp))
+  (:use :common-lisp)
+  (:export #:cpu #:emulate #:emulate-rom))
