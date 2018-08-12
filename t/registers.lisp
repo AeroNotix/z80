@@ -23,3 +23,20 @@
     (is (eq (z80::reg-b c) (ash (z80::reg-bc c) -8)))
     (is (eq (z80::reg-d c) (ash (z80::reg-de c) -8)))
     (is (eq (z80::reg-h c) (ash (z80::reg-hl c) -8)))))
+
+(def-test memory-accessors (:suite registers)
+  (let ((c (make-instance 'z80::cpu))
+        (memory-locations
+         (list 'z80::reg-af 'z80::mem-af
+               'z80::reg-bc 'z80::mem-bc
+               'z80::reg-de 'z80::mem-de
+               'z80::reg-hl 'z80::mem-hl)))
+    (loop for (address-register memory-location) on memory-locations :by #'cddr
+       do
+         (let ((address (random 65535))
+               (value   (random 255)))
+           (funcall (fdefinition `(setf ,address-register)) address c)
+           (funcall (fdefinition `(setf ,memory-location)) value c)
+           (is (eq (funcall memory-location c) value))
+           (is (eq (elt (z80::ram c) (funcall address-register c))
+                   (funcall memory-location c)))))))
