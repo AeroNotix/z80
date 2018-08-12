@@ -45,6 +45,12 @@
             next-instruction next-instruction (pc cpu))
     (format t "RAM: ~A~%" (ram cpu))))
 
+(defmethod carry-flag ((cpu cpu))
+  (logand 1 (reg-f cpu)))
+
+(defmethod carry-flag-set? ((cpu cpu))
+  (eq 1 (carry-flag cpu)))
+
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
   (replace (ram cpu) rom :start1 offset))
 
@@ -87,11 +93,9 @@
 
 (defmacro define-register-operators (register-name upper-name lower-name)
   (let ((upper-accessor (intern (format nil "REG-~S" upper-name)))
-        (upper-setter (intern (format nil "SET-REG-~S" upper-name)))
         (lower-accessor (intern (format nil "REG-~S" lower-name)))
-        (lower-setter (intern (format nil "SET-REG-~S" lower-name)))
         (whole-accessor (intern (format nil "REG-~S" register-name)))
-        (whole-setter (intern (format nil "SET-REG-~S" register-name)))
+        (mem-accessor (intern (format nil "MEM-~S" register-name)))
         (c (gensym))
         (value (gensym))
         (upper-reg-value (gensym))
@@ -107,22 +111,24 @@
      (defun ,whole-accessor (,c)
        (slot-value ,c ',register-name))
 
-     (defun ,upper-setter (,c ,value)
+     (defun (setf ,upper-accessor) (,value ,c)
        (let ((,lower-reg-value (,lower-accessor ,c)))
          (setf (slot-value ,c ',register-name)
                (logior (ash (logand ,value #xFF) 8) ,lower-reg-value))))
 
-     (defun ,lower-setter (,c ,value)
+     (defun (setf ,lower-accessor) (,value ,c)
        (let ((,upper-reg-value (,upper-accessor ,c)))
          (setf (slot-value ,c ',register-name)
                (logior (ash ,upper-reg-value 8) (logand ,value #xFF)))))
 
-     (defun ,whole-setter (,c ,value)
+     (defun (setf ,whole-accessor) (,value ,c)
        (setf (slot-value ,c ',register-name) (logand ,value #xFFFF)))
 
-     (defsetf ,upper-accessor ,upper-setter)
-     (defsetf ,lower-accessor ,lower-setter)
-     (defsetf ,whole-accessor ,whole-setter))))
+     (defun ,mem-accessor (,c)
+       (elt (ram ,c) (,whole-accessor ,c)))
+
+     (defun (setf ,mem-accessor) (,value ,c)
+       (setf (elt (ram ,c) (,whole-accessor ,c)) ,value)))))
 
 (define-register-operators af a f)
 (define-register-operators bc b c)
@@ -158,12 +164,6 @@
      (defparameter ,name inst)
      (setf (elt opcode-table ,opcode) ,name)
      inst))
-
-(defun mem-hl (cpu)
-  (elt (ram cpu) (reg-hl cpu)))
-
-(defun (setf mem-hl) (value cpu)
-  (setf (elt (ram cpu) (reg-hl cpu)) value))
 
 (defun halt (cpu)
   (setf (slot-value cpu 'halted?) t))

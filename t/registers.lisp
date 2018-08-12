@@ -7,10 +7,10 @@
   (run! 'registers))
 
 (def-test maintain-register-invariants (:suite registers)
-  (let ((registers (list #'z80::set-reg-a #'z80::set-reg-b #'z80::set-reg-c #'z80::set-reg-d #'z80::set-reg-e #'z80::set-reg-h #'z80::set-reg-l))
+  (let ((registers (list 'z80::reg-a 'z80::reg-b 'z80::reg-c 'z80::reg-d 'z80::reg-e 'z80::reg-h 'z80::reg-l))
         (c (make-instance 'z80::cpu)))
     (loop for register in registers
-       do (funcall register c (random 255)))
+       do (funcall (fdefinition `(setf ,register)) (random 255) c))
     (is (eq (z80::reg-f c) (logand (z80::reg-af c) #x00FF)))
     (is (eq (z80::reg-c c) (logand (z80::reg-bc c) #x00FF)))
     (is (eq (z80::reg-e c) (logand (z80::reg-de c) #x00FF)))
