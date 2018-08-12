@@ -19,7 +19,8 @@
                         :serial t
                         :components
                         ((:file "package")
-			             (:file "roms"))))
+			             (:file "roms")
+                         (:file "registers"))))
   ;; :perform (test-op (o s)
   ;;           (uiop:symbol-call :fiveam :run! 'z80-tests:all-tests))
   )
