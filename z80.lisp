@@ -1,6 +1,6 @@
 (in-package :z80)
 
-(defparameter logging-enabled nil)
+(defparameter logging-enabled t)
 
 ;; put this somewhere better, external library?
 (defconstant single-float-positive-infinity
@@ -18,6 +18,7 @@
 (defclass cpu ()
   ((ram :initform (make-array 65535) :accessor ram)
    (elapsed-cycles :initform 0)
+   (interrupts :initform :enabled :accessor interrupts)
    (halted? :initform nil)
    ;; This z80 emulator only implements the CPU. This peripherals list
    ;; allows code using the emulator to attach peripherals on the I/O
@@ -43,7 +44,8 @@
   (let ((next-instruction (elt (ram cpu) (slot-value cpu 'pc))))
     (format t "NEXT INSTRUCTION : ~X / ~A PC: ~D~%"
             next-instruction next-instruction (pc cpu))
-    (format t "RAM: ~A~%" (ram cpu))))
+    ;; (format t "RAM: ~A~%" (ram cpu))
+    ))
 
 (defmethod carry-flag ((cpu cpu))
   (logand 1 (reg-f cpu)))
@@ -82,6 +84,11 @@
     (if peripheral
         (read-from peripheral)
         0)))
+
+(defmethod write-port ((cpu cpu) port-id value)
+  (let ((peripheral (nth port-id (peripherals cpu))))
+    (when peripheral
+      (write-from peripheral))))
 
 (defmethod execute-next-instruction ((cpu cpu))
   (let* ((next-instruction (elt (ram cpu) (pc cpu)))
@@ -152,7 +159,7 @@
                       (reg-h cpu)))))
 
 (defclass instruction ()
-  ((name :initarg :name)
+  ((name :initarg :name :accessor name)
    (opcode :initarg :opcode)
    (size :initarg :size :accessor size)
    (cycles :initarg :cycles)
