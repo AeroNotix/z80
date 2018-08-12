@@ -51,6 +51,12 @@
 (defmethod carry-flag-set? ((cpu cpu))
   (eq 1 (carry-flag cpu)))
 
+(defmethod zero-flag ((cpu cpu))
+  (logand #x40 (reg-f cpu)))
+
+(defmethod zero-flag-set? ((cpu cpu))
+  (eq 1 (carry-flag cpu)))
+
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
   (replace (ram cpu) rom :start1 offset))
 
