@@ -4,8 +4,11 @@
   :licence "BSD"
   :serial t
   :components ((:file "package")
+               (:file "constants")
                (:file "z80")
                (:file "instructions")
+               (:file "tables")
+               (:file "bitmaths")
                (:file "peripherals"))
   :depends-on (:alexandria
                :flexi-streams))
@@ -20,7 +23,4 @@
                         :components
                         ((:file "package")
 			             (:file "roms")
-                         (:file "registers"))))
-  ;; :perform (test-op (o s)
-  ;;           (uiop:symbol-call :fiveam :run! 'z80-tests:all-tests))
-  )
+                         (:file "registers")))))

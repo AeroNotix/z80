@@ -1,12 +1,5 @@
 (in-package :z80)
 
-(defparameter logging-enabled t)
-
-;; put this somewhere better, external library?
-(defconstant single-float-positive-infinity
-  #+sbcl sb-ext:single-float-positive-infinity
-  #-sbcl most-positive-single-float)
-
 (defun spy (term)
   (when logging-enabled
     (format t "~A~%" term))
@@ -14,6 +7,9 @@
 
 (defun int-to-hex (&rest ints)
   (format t "~{~X~^ ~}~%" ints))
+
+(defun int-to-bin (&rest ints)
+  (format t "~{~B~^ ~}~%" ints))
 
 (defclass cpu ()
   ((ram :initform (make-array 65535) :accessor ram)
@@ -31,12 +27,17 @@
    ;; BC: 16-bit data/address register or two 8-bit registers
    ;; DE: 16-bit data/address register or two 8-bit registers
    ;; HL: 16-bit accumulator/address register or two 8-bit registers
+   ;; RR': 16-bit shadow registers
    ;; SP: stack pointer, 16 bits
    ;; PC: program counter, 16 bits
    (af :initform 0)
    (bc :initform 0)
    (de :initform 0)
    (hl :initform 0)
+   (af% :initform 0)
+   (bc% :initform 0)
+   (de% :initform 0)
+   (hl% :initform 0)
    (sp :initform 0 :accessor sp)
    (pc :initform 0 :accessor pc)))
 
@@ -148,38 +149,61 @@
 (define-register-operators de d e)
 (define-register-operators hl h l)
 
+(define-register-operators af% a% f%)
+(define-register-operators bc% b% c%)
+(define-register-operators de% d% e%)
+(define-register-operators hl% h% l%)
+
+(defmethod flag-s ((cpu cpu))
+  (logbitp s-flag-pos (reg-f cpu)))
+
+(defmethod flag-h ((cpu cpu))
+  (logbitp h-flag-pos (reg-f cpu)))
+
+(defmethod flag-z ((cpu cpu))
+  (logbitp z-flag-pos (reg-f cpu)))
+
+(defmethod flag-nz ((cpu cpu))
+  (not (flag-z cpu)))
+
+(defmethod flag-c ((cpu cpu))
+  (logbitp c-flag-pos (reg-f cpu)))
+
+(defmethod flag-nc ((cpu cpu))
+  (not (flag-c cpu)))
+
+(defmethod flag-p ((cpu cpu))
+  (logbitp p-flag-pos (reg-f cpu)))
+
+(defmethod flag-n ((cpu cpu))
+  (logbitp n-flag-pos (reg-f cpu)))
+
 (defun dump-registers (cpu)
   (format t "~{~{~2a ~^| ~}~%~}~%"
-          (list '("a" "b" "c" "d" "e" "h")
+          (list '("a" "b" "c" "d" "e" "h" "f")
                 (list (reg-a cpu)
                       (reg-b cpu)
                       (reg-c cpu)
                       (reg-d cpu)
                       (reg-e cpu)
-                      (reg-h cpu)))))
+                      (reg-h cpu)
+                      (reg-f cpu)))))
 
-(defclass instruction ()
-  ((name :initarg :name :accessor name)
-   (opcode :initarg :opcode)
-   (size :initarg :size :accessor size)
-   (cycles :initarg :cycles)
-   (microcode :initarg :microcode :accessor microcode)))
-
-(defparameter opcode-table (make-array 257))
-
-(defmacro define-instruction (name opcode size args &body body)
-
-  `(let* ((inst (make-instance 'instruction
-                               :name ',name
-                               :opcode ,opcode
-                               :size ,size
-                               :microcode (lambda ,args ,@body))))
-     (defparameter ,name inst)
-     (setf (elt opcode-table ,opcode) ,name)
-     inst))
+(defun dump-flags (cpu)
+  (format t "~{~{~3a ~^| ~}~%~}~%"
+          (list '("C" "Z" "P" "S" "N" "H")
+                (list (flag-c cpu)
+                      (flag-z cpu)
+                      (flag-p cpu)
+                      (flag-s cpu)
+                      (flag-n cpu)
+                      (flag-h cpu)))))
 
 (defun halt (cpu)
   (setf (slot-value cpu 'halted?) t))
+
+(defun unhalt (cpu)
+  (setf (slot-value cpu 'halted?) nil))
 
 (defun emulate-rom (cpu rom-path &key (max-instructions single-float-positive-infinity))
   (load-ram-from-rom-file cpu rom-path)
