@@ -46,23 +46,28 @@
 (defun ld (c y z)
   (funcall (setf-of y) (funcall z c) c))
 
+(defun calculate-flags (value)
+  (let ((c-flag (if (> value 255) c-flag 0))
+        (z-flag (if (eq value 0) z-flag 0))
+        (p-flag (if (eq (8-bit-parity value) 1) p-flag 0))
+        (s-flag (if (< 127 value 256) s-flag 0))
+        (n-flag 0)
+        (h-flag h-flag)) ;; not-correct
+    (logior c-flag z-flag p-flag s-flag n-flag h-flag)))
+
 (defun inc (c y &key (amount 1))
   (let* ((result (+ amount (funcall y c)))
-         (c-flag (if (> result 255) c-flag 0))
-         (z-flag (if (eq result 0) z-flag 0))
-         (p-flag p-flag) ;; not correct
-         (s-flag (if (< 127 result 256) s-flag 0))
-         (n-flag 0)
-         (h-flag 0) ;; not-correct
-         (next-flags (logior c-flag z-flag p-flag s-flag n-flag h-flag)))
+         (next-flags (calculate-flags result)))
     (format t "~B~%" next-flags)
     (setf (reg-f c) next-flags)
     (funcall (setf-of y) result c)))
 
-(defun dec (c y)
-  (let ((next-flags (logior z-flag))
-        (res (funcall (decf-of y) c)))
-    (setf (reg-f next-flags) c)))
+(defun dec (c y &key (amount 1))
+  (let* ((result (- amount (funcall y c)))
+         (next-flags (calculate-flags result)))
+    (setf (reg-f c) next-flags)
+    (funcall (setf-of y) result c)))
+
 
 (defun find-8-bit-register (i)
   (elt (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-h 'reg-l 'mem-hl 'reg-a) i))
@@ -91,6 +96,12 @@
 (define-instruction ld-indirect-bc-a #x1 (cpu opcode)
   (setf (mem-bc cpu) (reg-a cpu)))
 
+(define-instruction ld-indirect-de-a #x1 (cpu opcode)
+  (setf (mem-de cpu) (reg-a cpu)))
+
+(define-instruction ld-a-indirect-de #x1 (cpu opcode)
+  (setf (reg-a cpu) (mem-de cpu)))
+
 (define-instruction ld-a-indirect-bc #x1 (cpu opcode)
   (setf (reg-a cpu) (mem-bc cpu)))
 
@@ -109,6 +120,12 @@
 (define-instruction dec-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
     (dec cpu p)))
+
+(define-instruction rra #x1 (cpu opcode)
+  (error "fuck-knows-what-to-do-with-this-opcode"))
+
+(define-instruction rla #x1 (cpu opcode)
+  (error "fuck-knows-what-to-do-with-this-opcode"))
 
 (define-instruction rlca #x1 (cpu opcode)
   (error "fuck-knows-what-to-do-with-this-opcode"))
@@ -137,9 +154,16 @@
   (let ((value (fetch-byte-from-ram cpu)))
     (inc cpu 'reg-a :amount value)))
 
-(define-instruction djnz-n #x2 (cpu opcode)
+;; (define-instruction jr-cc-e #x
+
+(define-instruction jr-d #x2 (cpu opcode)
   (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu))))
-    (
+    (incf (pc cpu) jump-offset)))
+
+(define-instruction djnz-d #x2 (cpu opcode)
+  (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu))))
+    (when (flag-nz cpu)
+      (incf (pc cpu) jump-offset))))
 
 ;; (define-instruction ld-b-n #x06 #x2 (cpu) (setf (reg-b cpu) (fetch-byte-from-ram cpu)))
 ;; (define-instruction ld-d-n #x16 #x2 (cpu) (setf (reg-d cpu) (fetch-byte-from-ram cpu)))
