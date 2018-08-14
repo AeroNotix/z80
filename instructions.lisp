@@ -43,6 +43,35 @@
 (defun opcode-q (opcode)
   (logand (ash opcode -3) #x03))
 
+(defun push% (cpu &rest values)
+  (loop for value in values
+     do
+       (setf (mem-sp cpu) value)
+       (decf (reg-sp cpu))))
+
+(defun push-from (cpu place)
+  (let ((upper-reg (first (16-bit-register->8-bit-registers place)))
+        (lower-reg (second (16-bit-register->8-bit-registers place))))
+    (push% cpu (funcall upper-reg cpu) (funcall lower-reg cpu))))
+
+(defun pop-to (cpu place)
+  (let ((upper-reg (first (16-bit-register->8-bit-registers place)))
+        (lower-reg (second (16-bit-register->8-bit-registers place))))
+    (setf (mem-sp cpu) (funcall upper-reg cpu))
+    (incf (reg-sp cpu))
+    (setf (mem-sp cpu) (funcall lower-reg cpu))
+    (incf (reg-sp cpu))))
+
+(defun ret (cpu)
+  (let ((lower (mem-sp cpu)))
+    (incf (reg-sp cpu))
+    (let ((upper (mem-sp cpu)))
+      (setf (pc cpu) (logand (ash upper 8) lower)))))
+
+(defun call (cpu address)
+  (push% cpu (+ 3 (pc cpu)))
+  (setf (pc cpu) address))
+
 (defun ld (c y z)
   (funcall (setf-of y) (funcall z c) c))
 
@@ -75,7 +104,13 @@
 (defun find-16-bit-register (i)
   (elt (list 'reg-bc 'reg-de 'reg-hl 'reg-sp) i))
 
+(defun find-16-bit-register% (i)
+  (elt (list 'reg-bc 'reg-de 'reg-hl 'reg-af) i))
+
 (define-instruction nop #x1 (cpu opcode))
+
+(define-instruction halt #x1 (cpu opcode)
+  (halt cpu))
 
 ;; 8-bit register loading LD, r[y], r[z]
 (define-instruction ld-r-r #x1 (cpu opcode)
@@ -93,6 +128,14 @@
   (let ((p (find-16-bit-register (opcode-p opcode))))
     (ld cpu p #'fetch-word)))
 
+(define-instruction ld-r-indirect-hl #x1 (cpu opcode)
+  (let ((y (find-8-bit-register (opcode-y opcode))))
+    (ld y cpu #'mem-hl)))
+
+(define-instruction ld-indirect-hl-r #x1 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode))))
+    (ld #'mem-hl cpu z)))
+
 (define-instruction ld-indirect-bc-a #x1 (cpu opcode)
   (setf (mem-bc cpu) (reg-a cpu)))
 
@@ -105,6 +148,21 @@
 (define-instruction ld-a-indirect-bc #x1 (cpu opcode)
   (setf (reg-a cpu) (mem-bc cpu)))
 
+(define-instruction ld-a-indirect-nn #x3 (cpu opcode)
+  (setf (reg-a cpu) (elt (ram cpu) (fetch-word cpu))))
+
+(define-instruction ld-indirect-nn-hl #x3 (cpu opcode)
+  (setf (elt (ram cpu) (fetch-word cpu)) (reg-hl cpu)))
+
+(define-instruction ld-indirect-nn-a #x3 (cpu opcode)
+  (setf (elt (ram cpu) (fetch-word cpu)) (reg-a cpu)))
+
+(define-instruction ld-hl-indirect-nn #x3 (cpu opcode)
+  (setf (reg-hl cpu) (elt (ram cpu) (fetch-word cpu))))
+
+(define-instruction ld-indirect-hl-n #x2 (cpu opcode)
+  (setf (mem-hl cpu) (fetch-byte-from-ram cpu)))
+
 (define-instruction inc-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
     (inc cpu p)))
@@ -113,6 +171,12 @@
   (let ((y (find-8-bit-register (opcode-y opcode))))
     (inc cpu y)))
 
+(define-instruction inc-indirect-hl #x1 (cpu opcode)
+  (incf (elt (ram cpu) (reg-hl cpu))))
+
+(define-instruction dec-indirect-hl #x1 (cpu opcode)
+  (decf (elt (ram cpu) (reg-hl cpu))))
+
 (define-instruction dec-r #x1 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y opcode))))
     (dec cpu y)))
@@ -120,6 +184,21 @@
 (define-instruction dec-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
     (dec cpu p)))
+
+(define-instruction scf #x1 (cpu opcode)
+  (setf (reg-f cpu) (logior c-mask (reg-f cpu))))
+
+(define-instruction ccf #x1 (cpu opcode)
+  (error "Not implemented: invert carry flag"))
+
+(define-instruction cpl #x1 (cpu opcode)
+  (error "Not implemented: flip bits in reg-a"))
+
+(define-instruction cp-r #x1 (cpu opcode)
+  (error "Not implemented: subtract r from reg-a, affect flag, reg-a unaffected"))
+
+(define-instruction daa #x1 (cpu opcode)
+  (error "Not implemented: adjust register a for BCD"))
 
 (define-instruction rra #x1 (cpu opcode)
   (error "fuck-knows-what-to-do-with-this-opcode"))
@@ -154,7 +233,43 @@
   (let ((value (fetch-byte-from-ram cpu)))
     (inc cpu 'reg-a :amount value)))
 
-;; (define-instruction jr-cc-e #x
+(define-instruction adc-r #x1 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode))))
+    (inc cpu 'reg-a :amount (+ (funcall z cpu) (flag-c cpu)))))
+
+(define-instruction sub-r #x1 (cpu opcode)
+  (error "Not implemented: sub r from reg-a"))
+
+(define-instruction sbc-r #x1 (cpu opcode)
+  (error "Not implemented: sub r and carry flag from reg-a"))
+
+(define-instruction and-r #x1 (cpu opcode)
+  (warn "and-r doesn't set flags, yet")
+  (setf (reg-a cpu) (logand (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
+
+(define-instruction xor-r #x1 (cpu opcode)
+  (warn "xor-r doesn't set flags, yet")
+  (setf (reg-a cpu) (logxor (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
+
+(define-instruction or-r #x1 (cpu opcode)
+  (warn "or-r doesn't set flags, yet")
+  (setf (reg-a cpu) (logior (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
+
+(define-instruction jr-cc-d #x1 (cpu opcode)
+  (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu)))
+        (jump-condition (opcode-q opcode)))
+    (when (funcall jump-condition)
+      (incf (pc cpu) jump-offset))))
+
+(define-instruction jp-cc-nn #x3 (cpu opcode)
+  (let ((jump-address (fetch-byte-from-ram cpu))
+        (jump-condition (opcode-q opcode)))
+    (when (funcall jump-condition)
+      (setf (pc cpu) jump-address))))
+
+(define-instruction jp-nn #x3 (cpu opcode)
+  (let ((jump-address (fetch-byte-from-ram cpu)))
+    (setf (pc cpu) jump-address)))
 
 (define-instruction jr-d #x2 (cpu opcode)
   (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu))))
@@ -164,6 +279,29 @@
   (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu))))
     (when (flag-nz cpu)
       (incf (pc cpu) jump-offset))))
+
+(define-instruction push-register #x1 (cpu opcode)
+  (let ((register (find-16-bit-register% (opcode-p opcode))))
+    (push-from register)))
+
+(define-instruction pop-register #x1 (cpu opcode)
+  (let ((register (find-16-bit-register% (opcode-p opcode))))
+    (pop-to register)))
+
+(define-instruction ret-cc #x1 (cpu opcode)
+  (let ((condition (find-condition (opcode-y))))
+    (when (funcall condition cpu)
+      (ret cpu))))
+
+(define-instruction pop-cc #x1 (cpu opcode)
+  (let ((condition (find-condition (opcode-y) cpu)))
+    (when (funcall condition cpu)
+      (pop cpu))))
+
+(define-instruction call-cc-nn #x3 (cpu opcode)
+  (let ((condition (find-condition (opcode-y cpu))))
+    (when (funcall condition cpu)
+      (call cpu (fetch-word cpu)))))
 
 ;; (define-instruction ld-b-n #x06 #x2 (cpu) (setf (reg-b cpu) (fetch-byte-from-ram cpu)))
 ;; (define-instruction ld-d-n #x16 #x2 (cpu) (setf (reg-d cpu) (fetch-byte-from-ram cpu)))

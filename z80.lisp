@@ -105,6 +105,11 @@
     (when (eq orig-pc (pc cpu))
       (incf (pc cpu) (size opcode)))))
 
+(defparameter 16-bit-register->8-bit-registers (make-hash-table))
+
+(defun 16-bit-register->8-bit-registers (16-bit-register-place)
+  (gethash 16-bit-register-place 16-bit-register->8-bit-registers))
+
 (defmacro define-register-operators (register-name upper-name lower-name)
   (let ((upper-accessor (intern (format nil "REG-~S" upper-name)))
         (lower-accessor (intern (format nil "REG-~S" lower-name)))
@@ -142,17 +147,22 @@
        (elt (ram ,c) (,whole-accessor ,c)))
 
      (defun (setf ,mem-accessor) (,value ,c)
-       (setf (elt (ram ,c) (,whole-accessor ,c)) ,value)))))
+       (setf (elt (ram ,c) (,whole-accessor ,c)) ,value))
+
+     (setf (gethash ',whole-accessor 16-bit-register->8-bit-registers)
+           (cons ',upper-accessor ',lower-accessor)))))
 
 (define-register-operators af a f)
 (define-register-operators bc b c)
 (define-register-operators de d e)
 (define-register-operators hl h l)
+(define-register-operators sp s p)
 
 (define-register-operators af% a% f%)
 (define-register-operators bc% b% c%)
 (define-register-operators de% d% e%)
 (define-register-operators hl% h% l%)
+(define-register-operators sp% s% s%)
 
 (defmethod flag-s ((cpu cpu))
   (logbitp s-flag-pos (reg-f cpu)))
@@ -174,6 +184,18 @@
 
 (defmethod flag-p ((cpu cpu))
   (logbitp p-flag-pos (reg-f cpu)))
+
+(defmethod flag-po ((cpu cpu))
+  (warn "flag-po must be implemented to interpret flag-po as flag-p = 0")
+  (logbitp p-flag-pos (reg-f cpu)))
+
+(defmethod flag-pe ((cpu cpu))
+  (warn "flag-pe must be implemented to interpret flag-po as flag-p = 1")
+  (logbitp p-flag-pos (reg-f cpu)))
+
+(defmethod flag-m ((cpu cpu))
+  (warn "flag-m must be implemented to interpret flag-s as flag-s = 1")
+  (logbitp n-flag-pos (reg-f cpu)))
 
 (defmethod flag-n ((cpu cpu))
   (logbitp n-flag-pos (reg-f cpu)))

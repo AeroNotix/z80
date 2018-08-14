@@ -22,7 +22,7 @@
 	           ld-r-n
 	           rrca
 
-	           djnz-e
+	           djnz-d
 	           ld-rr-nn
 	           ld-indirect-de-a
 	           inc-rr
@@ -31,7 +31,7 @@
 	           ld-r-n
 	           rla
 
-	           jr-e
+	           jr-d
 	           add-hl-rr
 	           ld-a-indirect-de
 	           dec-rr
@@ -40,7 +40,7 @@
 	           ld-r-n
 	           rra
 
-	           jr-dd-e
+	           jr-cc-d
 	           ld-rr-nn
 	           ld-indirect-nn-hl
 	           inc-rr
@@ -49,7 +49,7 @@
 	           ld-r-n
 	           daa
 
-	           jr-dd-e
+	           jr-cc-d
 	           add-hl-rr
 	           ld-hl-indirect-nn
 	           dec-rr
@@ -58,7 +58,7 @@
 	           ld-r-n
 	           cpl
 
-	           jr-dd-e
+	           jr-cc-d
 	           ld-rr-nn
 	           ld-indirect-nn-a
 	           inc-rr
@@ -67,7 +67,7 @@
 	           ld-indirect-hl-n
 	           scf
 
-	           jr-dd-e
+	           jr-cc-d
 	           add-hl-rr
 	           ld-a-indirect-nn
 	           dec-rr
@@ -154,7 +154,7 @@
 	           add-r
 	           add-r
 	           add-r
-	           add-indirect-hl
+	           add-r
 	           add-r
 
 	           adc-r
@@ -163,7 +163,7 @@
 	           adc-r
 	           adc-r
 	           adc-r
-	           adc-indirect-hl
+	           adc-r
 	           adc-r
 
 	           sub-r
@@ -172,7 +172,7 @@
 	           sub-r
 	           sub-r
 	           sub-r
-	           sub-indirect-hl
+	           sub-r
 	           sub-r
 
 	           sbc-r
@@ -181,7 +181,7 @@
 	           sbc-r
 	           sbc-r
 	           sbc-r
-	           sbc-indirect-hl
+	           sbc-r
 	           sbc-r
 
 	           and-r
@@ -190,7 +190,7 @@
 	           and-r
 	           and-r
 	           and-r
-	           and-indirect-hl
+	           and-r
 	           and-r
 
 	           xor-r
@@ -199,7 +199,7 @@
 	           xor-r
 	           xor-r
 	           xor-r
-	           xor-indirect-hl
+	           xor-r
 	           xor-r
 
 	           or-r
@@ -208,7 +208,7 @@
 	           or-r
 	           or-r
 	           or-r
-	           or-indirect-hl
+	           or-r
 	           or-r
 
 	           cp-r
@@ -217,15 +217,15 @@
 	           cp-r
 	           cp-r
 	           cp-r
-	           cp-indirect-hl
+	           cp-r
 	           cp-r
 
 	           ret-cc
-	           pop-ss
+	           pop-register
 	           jp-cc-nn
 	           jp-nn
 	           call-cc-nn
-	           push-ss
+	           push-register
 	           add-n
 	           rst-p
 
@@ -239,11 +239,11 @@
 	           rst-p
 
 	           ret-cc
-	           pop-ss
+	           pop-register
 	           jp-cc-nn
 	           out-n-a
 	           call-cc-nn
-	           push-ss
+	           push-register
 	           sub-n
 	           rst-p
 
@@ -257,11 +257,11 @@
 	           rst-p
 
 	           ret-cc
-	           pop-ss
+	           pop-register
 	           jp-cc-nn
 	           ex-indirect-sp-hl
 	           call-cc-nn
-	           push-ss
+	           push-register
 	           and-n
 	           rst-p
 
@@ -275,11 +275,11 @@
 	           rst-p
 
 	           ret-cc
-	           pop-ss
+	           pop-register
 	           jp-cc-nn
 	           di
 	           call-cc-nn
-	           push-ss
+	           push-register
 	           or-n
 	           rst-p
 
@@ -294,75 +294,11 @@
                )))
 
 (defparameter flag-table
-  #(#'flag-nz #'flag-z #'flag-nc #'flag-c
-    #'flag-po #'flag-pe #'flag-p #'flag-m))
+  (list #'flag-nz #'flag-z #'flag-nc #'flag-c
+        #'flag-po #'flag-pe #'flag-p #'flag-m))
 
-(defparameter szyx-flags-table
-  (list
-	#x40 #x00 #x00 #x00 #x00 #x00 #x00 #x00
-	#x08 #x08 #x08 #x08 #x08 #x08 #x08 #x08
-	#x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00
-	#x08 #x08 #x08 #x08 #x08 #x08 #x08 #x08
-	#x20 #x20 #x20 #x20 #x20 #x20 #x20 #x20
-	#x28 #x28 #x28 #x28 #x28 #x28 #x28 #x28
-	#x20 #x20 #x20 #x20 #x20 #x20 #x20 #x20
-	#x28 #x28 #x28 #x28 #x28 #x28 #x28 #x28
-	#x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00
-	#x08 #x08 #x08 #x08 #x08 #x08 #x08 #x08
-	#x00 #x00 #x00 #x00 #x00 #x00 #x00 #x00
-	#x08 #x08 #x08 #x08 #x08 #x08 #x08 #x08
-	#x20 #x20 #x20 #x20 #x20 #x20 #x20 #x20
-	#x28 #x28 #x28 #x28 #x28 #x28 #x28 #x28
-	#x20 #x20 #x20 #x20 #x20 #x20 #x20 #x20
-	#x28 #x28 #x28 #x28 #x28 #x28 #x28 #x28
-	#x80 #x80 #x80 #x80 #x80 #x80 #x80 #x80
-	#x88 #x88 #x88 #x88 #x88 #x88 #x88 #x88
-	#x80 #x80 #x80 #x80 #x80 #x80 #x80 #x80
-	#x88 #x88 #x88 #x88 #x88 #x88 #x88 #x88
-	#xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0
-	#xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8
-	#xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0
-	#xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8
-	#x80 #x80 #x80 #x80 #x80 #x80 #x80 #x80
-	#x88 #x88 #x88 #x88 #x88 #x88 #x88 #x88
-	#x80 #x80 #x80 #x80 #x80 #x80 #x80 #x80
-	#x88 #x88 #x88 #x88 #x88 #x88 #x88 #x88
-	#xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0
-	#xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8
-	#xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0 #xa0
-	#xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8 #xa8))
+(defparameter condition-table
+  (list #'flag-nz #'flag-nc #'flag-z #'flag-c))
 
-(defparameter szyxp-flags-table
-  (list
-	#x44 #x00 #x00 #x04 #x00 #x04 #x04 #x00
-	#x08 #x0c #x0c #x08 #x0c #x08 #x08 #x0c
-	#x00 #x04 #x04 #x00 #x04 #x00 #x00 #x04
-	#x0c #x08 #x08 #x0c #x08 #x0c #x0c #x08
-	#x20 #x24 #x24 #x20 #x24 #x20 #x20 #x24
-	#x2c #x28 #x28 #x2c #x28 #x2c #x2c #x28
-	#x24 #x20 #x20 #x24 #x20 #x24 #x24 #x20
-	#x28 #x2c #x2c #x28 #x2c #x28 #x28 #x2c
-	#x00 #x04 #x04 #x00 #x04 #x00 #x00 #x04
-	#x0c #x08 #x08 #x0c #x08 #x0c #x0c #x08
-	#x04 #x00 #x00 #x04 #x00 #x04 #x04 #x00
-	#x08 #x0c #x0c #x08 #x0c #x08 #x08 #x0c
-	#x24 #x20 #x20 #x24 #x20 #x24 #x24 #x20
-	#x28 #x2c #x2c #x28 #x2c #x28 #x28 #x2c
-	#x20 #x24 #x24 #x20 #x24 #x20 #x20 #x24
-	#x2c #x28 #x28 #x2c #x28 #x2c #x2c #x28
-	#x80 #x84 #x84 #x80 #x84 #x80 #x80 #x84
-	#x8c #x88 #x88 #x8c #x88 #x8c #x8c #x88
-	#x84 #x80 #x80 #x84 #x80 #x84 #x84 #x80
-	#x88 #x8c #x8c #x88 #x8c #x88 #x88 #x8c
-	#xa4 #xa0 #xa0 #xa4 #xa0 #xa4 #xa4 #xa0
-	#xa8 #xac #xac #xa8 #xac #xa8 #xa8 #xac
-	#xa0 #xa4 #xa4 #xa0 #xa4 #xa0 #xa0 #xa4
-	#xac #xa8 #xa8 #xac #xa8 #xac #xac #xa8
-	#x84 #x80 #x80 #x84 #x80 #x84 #x84 #x80
-	#x88 #x8c #x8c #x88 #x8c #x88 #x88 #x8c
-	#x80 #x84 #x84 #x80 #x84 #x80 #x80 #x84
-	#x8c #x88 #x88 #x8c #x88 #x8c #x8c #x88
-	#xa0 #xa4 #xa4 #xa0 #xa4 #xa0 #xa0 #xa4
-	#xac #xa8 #xa8 #xac #xa8 #xac #xac #xa8
-	#xa4 #xa0 #xa0 #xa4 #xa0 #xa4 #xa4 #xa0
-	#xa8 #xac #xac #xa8 #xac #xa8 #xa8 #xac))
+(defun find-condition (opcode-y)
+  (elt condition-table opcode-y))
