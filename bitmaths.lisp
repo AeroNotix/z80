@@ -30,10 +30,4 @@
      return (logand y 1)))
 
 (defun 8-bit-parity (x)
-  (loop
-     with parity = 0
-     for i from 0 to 7
-     do
-       (setq parity (logxor parity (logand x 1)))
-       (setq x (ash x -1))
-     finally (return (logxor parity 1))))
+  (if (evenp (logcount x)) 1 0))
