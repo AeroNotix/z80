@@ -303,6 +303,15 @@
     (when (funcall condition cpu)
       (call cpu (fetch-word cpu)))))
 
+(define-instruction rst-p #x1 (cpu opcode)
+  (let ((y (opcode-y opcode))
+        (upper-pc (reg-pc-p cpu))
+        (lower-pc (reg-pc-c cpu)))
+    (push% cpu upper-pc lower-pc)
+    (setf (pc cpu) (find-rst-address y))))
+
+(define-instruction ret #x
+
 ;; (define-instruction ld-b-n #x06 #x2 (cpu) (setf (reg-b cpu) (fetch-byte-from-ram cpu)))
 ;; (define-instruction ld-d-n #x16 #x2 (cpu) (setf (reg-d cpu) (fetch-byte-from-ram cpu)))
 ;; (define-instruction ld-h-n #x26 #x2 (cpu) (setf (reg-h cpu) (fetch-byte-from-ram cpu)))

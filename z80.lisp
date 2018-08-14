@@ -158,6 +158,8 @@
 (define-register-operators hl h l)
 (define-register-operators sp s p)
 
+(define-register-operators pc pc-p pc-c)
+
 (define-register-operators af% a% f%)
 (define-register-operators bc% b% c%)
 (define-register-operators de% d% e%)

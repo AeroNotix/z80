@@ -302,3 +302,9 @@
 
 (defun find-condition (opcode-y)
   (elt condition-table opcode-y))
+
+(defparameter rst-table
+  (list #x00 #x08 #x10 #x18 #x20 #x28 #x30 #x38))
+
+(defun find-rst-address (opcode-y)
+  (elt rst-table opcode-y))

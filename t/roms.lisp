@@ -21,8 +21,9 @@
     (is (eq (funcall value-extractor (z80:emulate-rom cpu rom)) expected-value))))
 
 (def-test expected-register-value-roms (:suite roms)
-  (let ((roms-and-expected-values (list (list "jump-to-port-address.rom" #'z80::reg-a 123)
-                                        (list "load-tests.rom" #'z80::reg-l 123)
-                                        (list "xors.rom" #'z80::reg-a 255)
-                                        (list "flags.rom" #'z80::reg-a 123))))
+  (let ((roms-and-expected-values (list ;; (list "jump-to-port-address.rom" #'z80::reg-a 123)
+                                        ;; (list "load-tests.rom" #'z80::reg-l 123)
+                                        ;; (list "xors.rom" #'z80::reg-a 255)
+                                        ;; (list "flags.rom" #'z80::reg-a 123)
+                                        (list "48.rom" #'z80::reg-a 99))))
     (mapcar (lambda (args) (apply #'test-rom args)) roms-and-expected-values)))
