@@ -14,7 +14,7 @@
 (defclass cpu ()
   ((ram :initform (make-array 65535) :accessor ram)
    (elapsed-cycles :initform 0)
-   (interrupts :initform :enabled :accessor interrupts)
+   (interrupts-enabled? :initform T :accessor interrupts-enabled?)
    (halted? :initform nil)
    ;; This z80 emulator only implements the CPU. This peripherals list
    ;; allows code using the emulator to attach peripherals on the I/O

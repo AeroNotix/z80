@@ -163,6 +163,9 @@
 (define-instruction ld-indirect-hl-n #x2 (cpu opcode)
   (setf (mem-hl cpu) (fetch-byte-from-ram cpu)))
 
+(define-instruction ld-sp-hl #x1 (cpu opcode)
+  (setf (reg-sp cpu) (reg-hl cpu)))
+
 (define-instruction inc-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
     (inc cpu p)))
@@ -197,6 +200,9 @@
 (define-instruction cp-r #x1 (cpu opcode)
   (error "Not implemented: subtract r from reg-a, affect flag, reg-a unaffected"))
 
+(define-instruction cp-n #x2 (cpu opcode)
+  (error "Not implemented: subtract n from reg-a, affect flag, reg-a unaffected"))
+
 (define-instruction daa #x1 (cpu opcode)
   (error "Not implemented: adjust register a for BCD"))
 
@@ -221,6 +227,15 @@
   (rotatef (reg-de cpu) (reg-de% cpu))
   (rotatef (reg-hl cpu) (reg-hl% cpu)))
 
+(define-instruction ex-indirect-sp-hl #x1 (cpu opcode)
+  (rotatef (mem-sp cpu) (reg-hl cpu)))
+
+(define-instruction ex-hl-hl% #x1 (cpu opcode)
+  (rotatef (reg-hl cpu) (reg-hl% cpu)))
+
+(define-instruction ex-de-hl #x1 (cpu opcode)
+  (rotatef (reg-de cpu) (reg-hl cpu)))
+
 (define-instruction add-hl-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
     (inc cpu 'reg-hl :amount (funcall p cpu))))
@@ -233,6 +248,10 @@
   (let ((value (fetch-byte-from-ram cpu)))
     (inc cpu 'reg-a :amount value)))
 
+(define-instruction adc-n #x1 (cpu opcode)
+  (let ((value (fetch-byte-from-ram cpu)))
+    (inc cpu 'reg-a :amount (+ value (flag-c cpu)))))
+
 (define-instruction adc-r #x1 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode))))
     (inc cpu 'reg-a :amount (+ (funcall z cpu) (flag-c cpu)))))
@@ -240,20 +259,38 @@
 (define-instruction sub-r #x1 (cpu opcode)
   (error "Not implemented: sub r from reg-a"))
 
+(define-instruction sub-n #x1 (cpu opcode)
+  (error "Not implemented: sub n from reg-a"))
+
 (define-instruction sbc-r #x1 (cpu opcode)
   (error "Not implemented: sub r and carry flag from reg-a"))
+
+(define-instruction sbc-n #x1 (cpu opcode)
+  (error "Not implemented: sub n and carry flag from reg-a"))
 
 (define-instruction and-r #x1 (cpu opcode)
   (warn "and-r doesn't set flags, yet")
   (setf (reg-a cpu) (logand (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
 
+(define-instruction and-n #x2 (cpu opcode)
+  (warn "and-n doesn't set flags, yet")
+  (setf (reg-a cpu) (logand (reg-a cpu) (fetch-byte-from-ram cpu))))
+
 (define-instruction xor-r #x1 (cpu opcode)
   (warn "xor-r doesn't set flags, yet")
   (setf (reg-a cpu) (logxor (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
 
+(define-instruction xor-n #x2 (cpu opcode)
+  (warn "xor-n doesn't set flags, yet")
+  (setf (reg-a cpu) (logxor (reg-a cpu) (fetch-byte-from-ram cpu))))
+
 (define-instruction or-r #x1 (cpu opcode)
   (warn "or-r doesn't set flags, yet")
   (setf (reg-a cpu) (logior (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
+
+(define-instruction or-n #x2 (cpu opcode)
+  (warn "or-n doesn't set flags, yet")
+  (setf (reg-a cpu) (logior (reg-a cpu) (fetch-byte-from-ram cpu))))
 
 (define-instruction jr-cc-d #x1 (cpu opcode)
   (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu)))
@@ -269,6 +306,10 @@
 
 (define-instruction jp-nn #x3 (cpu opcode)
   (let ((jump-address (fetch-byte-from-ram cpu)))
+    (setf (pc cpu) jump-address)))
+
+(define-instruction jp-hl #x3 (cpu opcode)
+  (let ((jump-address (reg-hl cpu)))
     (setf (pc cpu) jump-address)))
 
 (define-instruction jr-d #x2 (cpu opcode)
@@ -303,6 +344,9 @@
     (when (funcall condition cpu)
       (call cpu (fetch-word cpu)))))
 
+(define-instruction call-nn #x3 (cpu opcode)
+  (call cpu (fetch-word cpu)))
+
 (define-instruction rst-p #x1 (cpu opcode)
   (let ((y (opcode-y opcode))
         (upper-pc (reg-pc-p cpu))
@@ -310,174 +354,31 @@
     (push% cpu upper-pc lower-pc)
     (setf (pc cpu) (find-rst-address y))))
 
-(define-instruction ret #x
+(define-instruction ret #x1 (cpu opcode)
+  (ret cpu))
 
-;; (define-instruction ld-b-n #x06 #x2 (cpu) (setf (reg-b cpu) (fetch-byte-from-ram cpu)))
-;; (define-instruction ld-d-n #x16 #x2 (cpu) (setf (reg-d cpu) (fetch-byte-from-ram cpu)))
-;; (define-instruction ld-h-n #x26 #x2 (cpu) (setf (reg-h cpu) (fetch-byte-from-ram cpu)))
-;; (define-instruction ld-hl-n #x36 #x2 (cpu) (setf (reg-h cpu) (setf (mem-hl cpu)
-;;                                                                    (fetch-byte-from-ram cpu))))
+(define-instruction out-n-a #x2 (cpu opcode)
+  (let ((port-id (fetch-byte-from-ram cpu)))
+    (write-port cpu port-id (reg-a cpu))))
 
+(define-instruction in-a-n #x2 (cpu opcode)
+  (let ((port-id (fetch-byte-from-ram cpu)))
+    (setf (reg-a cpu) (read-port cpu port-id) )))
 
-;; (define-instruction ld-a-bc #x0A #x2 (cpu) (setf (reg-a cpu) (mem-bc cpu)))
-;; (define-instruction ld-a-de #x1A #x2 (cpu) (setf (reg-a cpu) (mem-de cpu)))
-;; (define-instruction ld-hl-nn #x2A #x3 (cpu)
-;;   (setf (reg-hl cpu) (elt (ram cpu) (fetch-word cpu))))
-;; (define-instruction ld-a-nn #x3A #x2 (cpu)
-;;   (setf (reg-a cpu) (elt (ram cpu) (fetch-word cpu))))
+(define-instruction di #x1 (cpu opcode)
+  (setf (interrupts-enabled? cpu) nil))
 
-;; (define-instruction ld-bc-nn #x01 #x3 (cpu) (setf (reg-bc cpu) (fetch-word cpu)))
-;; (define-instruction ld-de-nn #x11 #x3 (cpu) (setf (reg-de cpu) (fetch-word cpu)))
-;; (define-instruction ld-hl-nn #x21 #x3 (cpu) (setf (reg-hl cpu) (fetch-word cpu)))
-;; ;; implement (reg-sp cpu)
-;; (define-instruction ld-sp-nn #x31 #x3 (cpu) (setf (reg-sp cpu) (fetch-word cpu)))
+(define-instruction ei #x1 (cpu opcode)
+  (setf (interrupts-enabled? cpu) t))
 
-;; (define-instruction ld-c-n #x0E #x2 (cpu) (setf (reg-c cpu) (fetch-byte-from-ram cpu)))
-;; (define-instruction ld-e-n #x1E #x2 (cpu) (setf (reg-e cpu) (fetch-byte-from-ram cpu)))
-;; (define-instruction ld-l-n #x2E #x2 (cpu) (setf (reg-l cpu) (fetch-byte-from-ram cpu)))
-;; (define-instruction ld-a-n #x3E #x2 (cpu) (setf (reg-a cpu) (fetch-byte-from-ram cpu)))
+(define-instruction ed-prefix #x2 (cpu opcode)
+  )
 
-;; ;; LD-x{,y} instructions
-;; (define-instruction ld-b-b #x40 #x1 (cpu) (setf (reg-b cpu) (reg-b cpu)))
-;; (define-instruction ld-b-c #x41 #x1 (cpu) (setf (reg-b cpu) (reg-c cpu)))
-;; (define-instruction ld-b-d #x42 #x1 (cpu) (setf (reg-b cpu) (reg-d cpu)))
-;; (define-instruction ld-b-e #x43 #x1 (cpu) (setf (reg-b cpu) (reg-e cpu)))
-;; (define-instruction ld-b-h #x44 #x1 (cpu) (setf (reg-b cpu) (reg-h cpu)))
-;; (define-instruction ld-b-l #x45 #x1 (cpu) (setf (reg-b cpu) (reg-l cpu)))
-;; (define-instruction ld-b-hl #x46 #x1 (cpu) (setf (reg-b cpu) (mem-hl cpu)))
-;; (define-instruction ld-b-a #x47 #x1 (cpu) (setf (reg-b cpu) (reg-a cpu)))
-;; (define-instruction ld-c-b #x48 #x1 (cpu) (setf (reg-c cpu) (reg-b cpu)))
-;; (define-instruction ld-c-c #x49 #x1 (cpu) (setf (reg-c cpu) (reg-c cpu)))
-;; (define-instruction ld-c-d #x4A #x1 (cpu) (setf (reg-c cpu) (reg-d cpu)))
-;; (define-instruction ld-c-e #x4B #x1 (cpu) (setf (reg-c cpu) (reg-e cpu)))
-;; (define-instruction ld-c-h #x4C #x1 (cpu) (setf (reg-c cpu) (reg-h cpu)))
-;; (define-instruction ld-c-l #x4D #x1 (cpu) (setf (reg-c cpu) (reg-l cpu)))
-;; (define-instruction ld-c-hl #x4E #x1 (cpu) (setf (reg-c cpu) (mem-hl cpu)))
-;; (define-instruction ld-c-a #x4F #x1 (cpu) (setf (reg-c cpu) (reg-a cpu)))
+(define-instruction cb-prefix #x2 (cpu opcode)
+  )
 
-;; (define-instruction ld-d-b #x50 #x1 (cpu) (setf (reg-d cpu) (reg-b cpu)))
-;; (define-instruction ld-d-c #x51 #x1 (cpu) (setf (reg-d cpu) (reg-c cpu)))
-;; (define-instruction ld-d-d #x52 #x1 (cpu) (setf (reg-d cpu) (reg-d cpu)))
-;; (define-instruction ld-d-e #x53 #x1 (cpu) (setf (reg-d cpu) (reg-e cpu)))
-;; (define-instruction ld-d-h #x54 #x1 (cpu) (setf (reg-d cpu) (reg-h cpu)))
-;; (define-instruction ld-d-l #x55 #x1 (cpu) (setf (reg-d cpu) (reg-l cpu)))
-;; (define-instruction ld-d-hl #x56 #x1 (cpu) (setf (reg-d cpu) (mem-hl cpu)))
-;; (define-instruction ld-d-a #x57 #x1 (cpu) (setf (reg-d cpu) (reg-a cpu)))
-;; (define-instruction ld-e-b #x58 #x1 (cpu) (setf (reg-e cpu) (reg-b cpu)))
-;; (define-instruction ld-e-c #x59 #x1 (cpu) (setf (reg-e cpu) (reg-c cpu)))
-;; (define-instruction ld-e-d #x5A #x1 (cpu) (setf (reg-e cpu) (reg-d cpu)))
-;; (define-instruction ld-e-e #x5B #x1 (cpu) (setf (reg-e cpu) (reg-e cpu)))
-;; (define-instruction ld-e-h #x5C #x1 (cpu) (setf (reg-e cpu) (reg-h cpu)))
-;; (define-instruction ld-e-l #x5D #x1 (cpu) (setf (reg-e cpu) (reg-l cpu)))
-;; (define-instruction ld-e-hl #x5E #x1 (cpu) (setf (reg-e cpu) (mem-hl cpu)))
-;; (define-instruction ld-e-a #x5F #x1 (cpu) (setf (reg-e cpu) (reg-a cpu)))
+(define-instruction dd-prefix #x2 (cpu opcode)
+  )
 
-;; (define-instruction ld-h-b #x60 #x1 (cpu) (setf (reg-h cpu) (reg-b cpu)))
-;; (define-instruction ld-h-c #x61 #x1 (cpu) (setf (reg-h cpu) (reg-c cpu)))
-;; (define-instruction ld-h-d #x62 #x1 (cpu) (setf (reg-h cpu) (reg-d cpu)))
-;; (define-instruction ld-h-e #x63 #x1 (cpu) (setf (reg-h cpu) (reg-e cpu)))
-;; (define-instruction ld-h-h #x64 #x1 (cpu) (setf (reg-h cpu) (reg-h cpu)))
-;; (define-instruction ld-h-l #x65 #x1 (cpu) (setf (reg-h cpu) (reg-l cpu)))
-;; (define-instruction ld-h-hl #x66 #x1 (cpu) (setf (reg-h cpu) (mem-hl cpu)))
-;; (define-instruction ld-h-a #x67 #x1 (cpu) (setf (reg-h cpu) (reg-a cpu)))
-;; (define-instruction ld-l-b #x68 #x1 (cpu) (setf (reg-l cpu) (reg-b cpu)))
-;; (define-instruction ld-l-c #x69 #x1 (cpu) (setf (reg-l cpu) (reg-c cpu)))
-;; (define-instruction ld-l-d #x6A #x1 (cpu) (setf (reg-l cpu) (reg-d cpu)))
-;; (define-instruction ld-l-e #x6B #x1 (cpu) (setf (reg-l cpu) (reg-e cpu)))
-;; (define-instruction ld-l-h #x6C #x1 (cpu) (setf (reg-l cpu) (reg-h cpu)))
-;; (define-instruction ld-l-l #x6D #x1 (cpu) (setf (reg-l cpu) (reg-l cpu)))
-;; (define-instruction ld-l-hl #x6E #x1 (cpu) (setf (reg-l cpu) (mem-hl cpu)))
-;; (define-instruction ld-l-a #x6F #x1 (cpu) (setf (reg-l cpu) (reg-a cpu)))
-
-;; (define-instruction ld-hl-b #x70 #x1 (cpu) (setf (mem-hl cpu) (reg-b cpu)))
-;; (define-instruction ld-hl-c #x71 #x1 (cpu) (setf (mem-hl cpu) (reg-c cpu)))
-;; (define-instruction ld-hl-d #x72 #x1 (cpu) (setf (mem-hl cpu) (reg-d cpu)))
-;; (define-instruction ld-hl-e #x73 #x1 (cpu) (setf (mem-hl cpu) (reg-e cpu)))
-;; (define-instruction ld-hl-h #x74 #x1 (cpu) (setf (mem-hl cpu) (reg-h cpu)))
-;; (define-instruction ld-hl-l #x75 #x1 (cpu) (setf (mem-hl cpu) (reg-l cpu)))
-;; (define-instruction halt   #x76 #x1 (cpu) (halt cpu))
-;; (define-instruction ld-hl-a #x77 #x1 (cpu) (setf (mem-hl cpu) (reg-a cpu)))
-;; (define-instruction ld-a-b #x78 #x1 (cpu) (setf (reg-a cpu) (reg-b cpu)))
-;; (define-instruction ld-a-c #x79 #x1 (cpu) (setf (reg-a cpu) (reg-c cpu)))
-;; (define-instruction ld-a-d #x7A #x1 (cpu) (setf (reg-a cpu) (reg-d cpu)))
-;; (define-instruction ld-a-e #x7B #x1 (cpu) (setf (reg-a cpu) (reg-e cpu)))
-;; (define-instruction ld-a-h #x7C #x1 (cpu) (setf (reg-a cpu) (reg-h cpu)))
-;; (define-instruction ld-a-l #x7D #x1 (cpu) (setf (reg-a cpu) (reg-l cpu)))
-;; (define-instruction ld-a-hl #x7E #x1 (cpu) (setf (reg-a cpu) (mem-hl cpu)))
-;; (define-instruction ld-a-a #x7F #x1 (cpu) (setf (reg-a cpu) (reg-a cpu)))
-
-;; ;; 16-bit inc-XX's -- probably doesn't work
-;; (define-instruction inc-bc #x03 #x1 (cpu) (setf (reg-bc cpu) (1+ reg-bc cpu)))
-
-;; ;; 8-bit inc-X's
-;; (define-instruction inc-b  #x04 #x1 (cpu) (setf (reg-b cpu) (1+ (reg-b cpu))))
-;; (define-instruction inc-d  #x14 #x1 (cpu) (setf (reg-d cpu) (1+ (reg-d cpu))))
-;; (define-instruction inc-h  #x24 #x1 (cpu) (setf (reg-h cpu) (1+ (reg-h cpu))))
-;; (define-instruction inc-c  #x0C #x1 (cpu) (setf (reg-c cpu) (1+ (reg-c cpu))))
-;; (define-instruction inc-e  #x1C #x1 (cpu) (setf (reg-e cpu) (1+ (reg-e cpu))))
-;; (define-instruction inc-l  #x2C #x1 (cpu) (setf (reg-l cpu) (1+ (reg-l cpu))))
-;; (define-instruction inc-a  #x3C #x1 (cpu) (setf (reg-a cpu) (1+ (reg-a cpu))))
-
-;; ;; 16-bit dec-X's
-;; (define-instruction dec-bc #x0B #x1 (cpu) (setf (reg-bc cpu) (1- (reg-bc cpu))))
-;; (define-instruction dec-de #x1B #x1 (cpu) (setf (reg-de cpu) (1- (reg-de cpu))))
-;; (define-instruction dec-hl #x2B #x1 (cpu) (setf (reg-hl cpu) (1- (reg-hl cpu))))
-;; (define-instruction dec-sp #x3B #x1 (cpu) (setf (reg-sp cpu) (1- (reg-sp cpu))))
-
-;; ;; 8-bit dec-X's
-;; (define-instruction dec-b #x05 #x1 (cpu) (setf (reg-b cpu) (1- (reg-b cpu))))
-;; (define-instruction dec-d #x15 #x1 (cpu) (setf (reg-d cpu) (1- (reg-d cpu))))
-;; (define-instruction dec-h #x21 #x1 (cpu) (setf (reg-h cpu) (1- (reg-h cpu))))
-;; (define-instruction dec-hl #x35 #x1 (cpu) (setf (mem-hl cpu) (1- (mem-hl cpu))))
-;; (define-instruction dec-c #x0D #x1 (cpu) (setf (reg-c cpu) (1- (reg-c cpu))))
-;; (define-instruction dec-e #x1D #x1 (cpu) (setf (reg-e cpu) (1- (reg-e cpu))))
-;; (define-instruction dec-l #x2D #x1 (cpu) (setf (reg-l cpu) (1- (reg-l cpu))))
-;; (define-instruction dec-a #x3D #x1 (cpu) (setf (reg-a cpu) (1- (reg-a cpu))))
-
-;; ;; inc-hl needs ram access
-;; (define-instruction inc-hl #x34 #x1 (cpu) (setf (reg-hl cpu) (1+ (reg-hl cpu))))
-
-;; ;; or instructions
-;; (define-instruction or-c #xB1 #x1 (cpu)
-;;   (let ((result (logior (reg-a cpu)
-;;                         (reg-c cpu))))
-;;     (setf (reg-a cpu) result
-;;           (reg-f cpu) (if (eq result 0)
-;;                           64
-;;                           0))))
-;; ;; xor instructions
-;; (define-instruction xor-b #xA8 #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-b cpu))))
-;; (define-instruction xor-c #xA9 #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-c cpu))))
-;; (define-instruction xor-d #xAA #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-d cpu))))
-;; (define-instruction xor-e #xAB #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-e cpu))))
-;; (define-instruction xor-h #xAC #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-h cpu))))
-;; (define-instruction xor-l #xAD #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-l cpu))))
-;; (define-instruction xor-z #xAE #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (mem-hl cpu))))
-;; (define-instruction xor-a #xAF #x1 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (reg-a cpu))))
-;; (define-instruction xor-n #xEE #x2 (cpu) (setf (reg-a cpu) (logxor (reg-a cpu) (fetch-byte-from-ram cpu))))
-
-;; ;; Relative jumps
-;; (define-instruction jr-nz-n #x20 #x2 (cpu)
-;;   (when (zero-flag-set? cpu)
-;;     (incf (pc cpu) (unsigned->signed (fetch-byte-from-ram cpu) 1))))
-
-;; ;; Absolute jumps
-;; (define-instruction jp-nn #xC3 #x3 (cpu)
-;;   (setf (pc cpu) (fetch-word cpu)))
-
-;; (define-instruction jp-hl #xE9 #x1 (cpu)
-;;   (setf (pc cpu) (reg-hl cpu)))
-
-;; (define-instruction jp-nc-nn #xD2 #x3 (cpu)
-;;   (when (not (carry-flag-set? cpu))
-;;     (funcall (microcode jp-nn) cpu)))
-
-;; ;; I/O instructions
-;; (define-instruction in-a-nn #xDB #x2 (cpu)
-;;   (setf (reg-a cpu) (read-port cpu (fetch-byte-from-ram cpu))))
-
-;; (define-instruction out-n-a #xD3 #x2 (cpu)
-;;   (write-port cpu (fetch-byte-from-ram cpu) (reg-a cpu)))
-
-;; (define-instruction di #xF3 #x1 (cpu)
-;;   (setf (interrupts cpu) :disabled))
+(define-instruction fd-prefix #x2 (cpu opcode)
+  )
