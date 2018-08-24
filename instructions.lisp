@@ -301,8 +301,8 @@
 
 (define-instruction jp-cc-nn #x3 (cpu opcode)
   (let ((jump-address (fetch-byte-from-ram cpu))
-        (jump-condition (opcode-q opcode)))
-    (when (funcall jump-condition)
+        (jump-condition (find-condition (opcode-q opcode))))
+    (when (funcall jump-condition cpu)
       (setf (pc cpu) jump-address))))
 
 (define-instruction jp-nn #x3 (cpu opcode)
