@@ -6,6 +6,7 @@
   :components ((:file "package")
                (:file "constants")
                (:file "z80")
+               (:file "debug")
                (:file "instructions")
                (:file "tables")
                (:file "bitmaths")
