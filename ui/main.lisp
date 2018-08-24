@@ -27,11 +27,13 @@
    (f3-flag-cb :accessor f3-flag-cb)
    (p-flag-cb :accessor p-flag-cb)
    (n-flag-cb :accessor n-flag-cb)
-   (c-flag-cb :accessor c-flag-cb))
+   (c-flag-cb :accessor c-flag-cb)
+   (open-file-action :accessor open-file-action))
   (:metaclass qt-class)
   (:qt-superclass "QMainWindow")
   (:slots ("single_step_emulator()" step-emulator)
-          ("run_emulator()" run-emulator)))
+          ("run_emulator()" run-emulator)
+          ("open_file_dialog()" open-file-dialog)))
 
 (defmacro cpu-flag-to-ui (ui-element cpu-slot cpu)
  `(#_setChecked ,ui-element (funcall ,cpu-slot ,cpu)))
@@ -67,6 +69,12 @@
   (z80::execute-next-instruction (cpu instance))
   (cpu-state-to-ui instance (cpu instance)))
 
+(defmethod open-file-dialog ((instance main-window))
+  (let ((filename (#_QFileDialog::getOpenFileName instance "Select ROM" "" "Z80 ROM (*.rom);;All Files(*)")))
+    (z80::load-ram-from-rom-file (cpu instance) filename)
+    (setf (z80::pc (cpu instance)) 0)
+    (cpu-state-to-ui instance (cpu instance))))
+
 (defun find-child (object name)
  (let ((children (#_children object)))
       (or
@@ -76,11 +84,16 @@
          (loop for child in children
             thereis (find-child child name)))))
 
+(defun ui-resource-location ()
+  (namestring
+   (cl-fad:merge-pathnames-as-file
+    (asdf:system-source-directory :z80/ui) #P"ui/" #P"main.ui")))
+
 ;;;; TODO: macro the everliving fuck out of this or get around to
 ;;;; implementing https://github.com/AeroNotix/cluic
 (defmethod initialize-instance :after ((instance main-window) &key)
   (new instance)
-  (with-objects ((file (#_new QFile "/home/xeno/dev/z80/ui/main.ui"))
+  (with-objects ((file (#_new QFile (ui-resource-location)))
                  (loader (#_new QUiLoader)))
     (when (#_open file 1)
       (let ((window (#_load loader file instance)))
@@ -132,7 +145,10 @@
                 f3-flag-cb (find-child window "cb_F3_flag")
                 p-flag-cb (find-child window "cb_PV_flag")
                 n-flag-cb (find-child window "cb_N_flag")
-                c-flag-cb (find-child window "cb_C_flag"))
+                c-flag-cb (find-child window "cb_C_flag")
+
+                open-file-action (find-child window "actionLoad_Rom"))
+          (connect open-file-action "triggered()" instance "open_file_dialog()")
           (connect run-btn "clicked()" instance "run_emulator()")
           (connect step-btn "clicked()" instance "single_step_emulator()")
           (cpu-state-to-ui instance (cpu instance)))))))
@@ -140,5 +156,4 @@
 (defun main ()
   (make-qapplication)
   (let ((mw (make-instance 'main-window)))
-    (z80::load-ram-from-rom-file (cpu mw) "/home/xeno/dev/z80/t/test-roms/flags.rom")
     (with-main-window (window mw))))

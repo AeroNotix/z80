@@ -12,6 +12,7 @@
                (:file "bitmaths")
                (:file "peripherals"))
   :depends-on (:alexandria
+               :cl-fad
                :flexi-streams))
 
 (asdf:defsystem #:z80/tests
