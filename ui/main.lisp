@@ -33,7 +33,7 @@
     (#_setText pc-register-le (format nil "~d" (z80::pc (cpu instance))))
     (multiple-value-bind (a-reg b-reg c-reg d-reg e-reg h-reg l-reg f-reg) (z80::dump-registers-to-values cpu)
       (#_setText a-register-le (format nil "0x~X" a-reg))
-	  (#_setText b-register-le (format nil "0x~X" b-reg))
+      (#_setText b-register-le (format nil "0x~X" b-reg))
       (#_setText c-register-le (format nil "0x~X" c-reg))
       (#_setText d-register-le (format nil "0x~X" d-reg))
       (#_setText e-register-le (format nil "0x~X" e-reg))
