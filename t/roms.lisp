@@ -26,5 +26,6 @@
                                         (list "load-literals.rom" #'z80::reg-l 7)
                                         (list "xors.rom" #'z80::reg-a 255)
                                         (list "flags.rom" #'z80::reg-a 123)
-                                        (list "nz-flag.rom" #'z80::reg-a 255))))
+                                        (list "jz-flag.rom" #'z80::reg-a 255)
+                                        (list "jnz-flag.rom" #'z80::reg-a 255))))
     (mapcar (lambda (args) (apply #'test-rom args)) roms-and-expected-values)))
