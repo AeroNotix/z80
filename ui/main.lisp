@@ -64,7 +64,13 @@
       (#_setText l-register-le (format nil "0x~X" l-reg)))))
 
 (defmethod run-emulator ((instance main-window))
-  (z80::emulate (cpu instance)))
+  ;; TODO: make the emulator run asynchronously
+  ;; TODO: remove hacks like #_processEvents
+  (loop
+     do (progn
+          (step-emulator instance)
+          (#_processEvents qt:*qapplication*))
+     while t))
 
 (defmethod step-emulator ((instance main-window))
   (z80::execute-next-instruction (cpu instance))
