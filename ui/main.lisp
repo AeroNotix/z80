@@ -71,7 +71,9 @@
   (cpu-state-to-ui instance (cpu instance)))
 
 (defmethod open-file-dialog ((instance main-window))
-  (let ((filename (#_QFileDialog::getOpenFileName instance "Select ROM" "" "Z80 ROM (*.rom);;All Files(*)")))
+  (let ((filename (#_QFileDialog::getOpenFileName
+                   instance
+                   "Select ROM" "" "Z80 ROM (*.rom *.z80);;All Files(*)")))
     (z80::load-ram-from-rom-file (cpu instance) filename)
     (setf (z80::pc (cpu instance)) 0)
     (cpu-state-to-ui instance (cpu instance))))
