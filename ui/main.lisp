@@ -42,7 +42,7 @@
       (#_setText l-register-le (format nil "0x~X" l-reg)))))
 
 (defmethod run-emulator ((instance main-window))
-  (format t "HELLO~%"))
+  (z80::emulate (cpu instance)))
 
 (defmethod step-emulator ((instance main-window))
   (z80::execute-next-instruction (cpu instance))
