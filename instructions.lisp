@@ -91,11 +91,10 @@
     (funcall (setf-of y) result c)))
 
 (defun dec (c y &key (amount 1))
-  (let* ((result (- amount (funcall y c)))
+  (let* ((result (- (funcall y c) amount))
          (next-flags (calculate-flags result)))
     (setf (reg-f c) next-flags)
     (funcall (setf-of y) result c)))
-
 
 (defun find-8-bit-register (i)
   (elt (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-h 'reg-l 'mem-hl 'reg-a) i))
@@ -315,11 +314,11 @@
     (setf (pc cpu) jump-address)))
 
 (define-instruction jr-d #x2 (cpu opcode)
-  (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu))))
+  (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu) 1)))
     (incf (pc cpu) jump-offset)))
 
 (define-instruction djnz-d #x2 (cpu opcode)
-  (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu))))
+  (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu) 1)))
     (when (flag-nz cpu)
       (incf (pc cpu) jump-offset))))
 
