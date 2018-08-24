@@ -21,11 +21,16 @@
     (is (eq (funcall value-extractor (z80:emulate-rom cpu rom)) expected-value))))
 
 (def-test expected-register-value-roms (:suite roms)
+  ;; assertion values are just any old value chosen. Often chosen to
+  ;; be relatively "impossible" to achieve accidentally from the
+  ;; operations in the ROM. E.g. wouldn't assert 255 when 255 was
+  ;; manually placed into a register
   (let ((roms-and-expected-values (list (list "jump-to-port-address.rom" #'z80::reg-a 123)
                                         (list "load-tests.rom" #'z80::reg-l 123)
                                         (list "load-literals.rom" #'z80::reg-l 7)
                                         (list "xors.rom" #'z80::reg-a 255)
                                         (list "flags.rom" #'z80::reg-a 123)
                                         (list "jz-flag.rom" #'z80::reg-a 255)
-                                        (list "jnz-flag.rom" #'z80::reg-a 255))))
+                                        (list "jnz-flag.rom" #'z80::reg-a 255)
+                                        (list "jc-flag.rom" #'z80::reg-a 66))))
     (mapcar (lambda (args) (apply #'test-rom args)) roms-and-expected-values)))
