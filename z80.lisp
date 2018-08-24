@@ -30,59 +30,6 @@
    (sp :initform 0 :accessor sp)
    (pc :initform 0 :accessor pc)))
 
-(defmethod carry-flag ((cpu cpu))
-  (logand 1 (reg-f cpu)))
-
-(defmethod carry-flag-set? ((cpu cpu))
-  (eq 1 (carry-flag cpu)))
-
-(defmethod zero-flag ((cpu cpu))
-  (logand #x40 (reg-f cpu)))
-
-(defmethod zero-flag-set? ((cpu cpu))
-  (eq 1 (carry-flag cpu)))
-
-(defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
-  (replace (ram cpu) rom :start1 offset))
-
-(defmethod load-ram-from-rom-file ((cpu cpu) rom-path &key (offset 0))
-  (let ((rom (alexandria:read-file-into-byte-vector rom-path)))
-    (load-ram-from-seq cpu rom :offset offset)))
-
-(defmethod read-byte-from-ram ((cpu cpu) &key (address (pc cpu)))
-  (logand #xFFFF (elt (ram cpu) address)))
-
-(defmethod fetch-byte-from-ram ((cpu cpu))
-  (read-byte-from-ram cpu :address (1+ (pc cpu))))
-
-(defmethod read-word ((cpu cpu) &key (address (pc cpu)))
-  (spy (logior (logand #xFFFF (elt (ram cpu) address))
-               (logand #xFFFF (ash (elt (ram cpu) (1+ address)) 8)))))
-
-(defmethod fetch-word ((cpu cpu))
-  (read-word cpu :address (1+ (pc cpu))))
-
-(defmethod read-port ((cpu cpu) port-id)
-  (let ((peripheral (nth port-id (peripherals cpu))))
-    (if peripheral
-        (read-from peripheral)
-        0)))
-
-(defmethod write-port ((cpu cpu) port-id value)
-  (let ((peripheral (nth port-id (peripherals cpu))))
-    (when peripheral
-      (write-from peripheral))))
-
-(defmethod execute-next-instruction ((cpu cpu))
-  (let* ((opcode (elt (ram cpu) (pc cpu)))
-         (next-instruction (elt instruction-table opcode))
-         (orig-pc (pc cpu)))
-    (when logging-enabled
-      (debug-cpu cpu))
-    (funcall (microcode next-instruction) cpu opcode)
-    (when (eq orig-pc (pc cpu))
-      (incf (pc cpu) (size next-instruction)))))
-
 (defparameter 16-bit-register->8-bit-registers (make-hash-table))
 
 (defun 16-bit-register->8-bit-registers (16-bit-register-place)
@@ -135,14 +82,55 @@
 (define-register-operators de d e)
 (define-register-operators hl h l)
 (define-register-operators sp s p)
-
 (define-register-operators pc pc-p pc-c)
-
 (define-register-operators af% a% f%)
 (define-register-operators bc% b% c%)
 (define-register-operators de% d% e%)
 (define-register-operators hl% h% l%)
 (define-register-operators sp% s% s%)
+
+(defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
+  (replace (ram cpu) rom :start1 offset))
+
+(defmethod load-ram-from-rom-file ((cpu cpu) rom-path &key (offset 0))
+  (let ((rom (alexandria:read-file-into-byte-vector rom-path)))
+    (load-ram-from-seq cpu rom :offset offset)))
+
+(defmethod read-byte-from-ram ((cpu cpu) &key (address (pc cpu)))
+  (logand #xFFFF (elt (ram cpu) address)))
+
+(defmethod fetch-byte-from-ram ((cpu cpu))
+  (read-byte-from-ram cpu :address (1+ (pc cpu))))
+
+(defmethod read-word ((cpu cpu) &key (address (pc cpu)))
+  (spy (logior (logand #xFFFF (elt (ram cpu) address))
+               (logand #xFFFF (ash (elt (ram cpu) (1+ address)) 8)))))
+
+(defmethod fetch-word ((cpu cpu))
+  (read-word cpu :address (1+ (pc cpu))))
+
+(defmethod read-port ((cpu cpu) port-id)
+  (let ((peripheral (nth port-id (peripherals cpu))))
+    (if peripheral
+        (read-from peripheral)
+        0)))
+
+(defmethod write-port ((cpu cpu) port-id value)
+  (let ((peripheral (nth port-id (peripherals cpu))))
+    (when peripheral
+      (write-from peripheral))))
+
+(defmethod carry-flag ((cpu cpu))
+  (logand 1 (reg-f cpu)))
+
+(defmethod carry-flag-set? ((cpu cpu))
+  (eq 1 (carry-flag cpu)))
+
+(defmethod zero-flag ((cpu cpu))
+  (logand #x40 (reg-f cpu)))
+
+(defmethod zero-flag-set? ((cpu cpu))
+  (eq 1 (carry-flag cpu)))
 
 (defmethod flag-s ((cpu cpu))
   (logbitp s-flag-pos (reg-f cpu)))
@@ -183,11 +171,15 @@
 (defmethod flag-h ((cpu cpu))
   (logbitp h-flag-pos (reg-f cpu)))
 
-(defun halt (cpu)
-  (setf (slot-value cpu 'halted?) t))
-
-(defun unhalt (cpu)
-  (setf (slot-value cpu 'halted?) nil))
+(defmethod execute-next-instruction ((cpu cpu))
+  (let* ((opcode (elt (ram cpu) (pc cpu)))
+         (next-instruction (elt instruction-table opcode))
+         (orig-pc (pc cpu)))
+    (when logging-enabled
+      (debug-cpu cpu))
+    (funcall (microcode next-instruction) cpu opcode)
+    (when (eq orig-pc (pc cpu))
+      (incf (pc cpu) (size next-instruction)))))
 
 (defun emulate-rom (cpu rom-path &key (max-instructions single-float-positive-infinity))
   (load-ram-from-rom-file cpu rom-path)

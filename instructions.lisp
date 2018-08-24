@@ -108,7 +108,7 @@
 (define-instruction nop #x1 (cpu opcode))
 
 (define-instruction halt #x1 (cpu opcode)
-  (halt cpu))
+  (setf (slot-value cpu 'halted?) t))
 
 ;; 8-bit register loading LD, r[y], r[z]
 (define-instruction ld-r-r #x1 (cpu opcode)
