@@ -76,18 +76,17 @@
   (funcall (setf-of y) (funcall z c) c))
 
 (defun calculate-flags (value)
-  (let ((c-flag (if (> value 255) c-flag 0))
-        (z-flag (if (eq value 0) z-flag 0))
-        (p-flag (if (eq (8-bit-parity value) 1) p-flag 0))
-        (s-flag (if (< 127 value 256) s-flag 0))
+  (let ((c-flag (if (> value 255) c-mask 0))
+        (z-flag (if (eq value 0) z-mask 0))
+        (p-flag (if (eq (8-bit-parity value) 1) p-mask 0))
+        (s-flag (if (< 127 value 256) s-mask 0))
         (n-flag 0)
-        (h-flag h-flag)) ;; not-correct
+        (h-flag h-mask)) ;; not-correct
     (logior c-flag z-flag p-flag s-flag n-flag h-flag)))
 
 (defun inc (c y &key (amount 1))
   (let* ((result (+ amount (funcall y c)))
          (next-flags (calculate-flags result)))
-    (format t "~B~%" next-flags)
     (setf (reg-f c) next-flags)
     (funcall (setf-of y) result c)))
 

@@ -198,6 +198,9 @@
 (defmethod flag-n ((cpu cpu))
   (logbitp n-flag-pos (reg-f cpu)))
 
+(defmethod flag-h ((cpu cpu))
+  (logbitp h-flag-pos (reg-f cpu)))
+
 (defun dump-registers-to-values (cpu)
   (values (reg-a cpu)
           (reg-b cpu)
