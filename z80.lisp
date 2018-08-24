@@ -15,7 +15,7 @@
   ((ram :initform (make-array 65535 :initial-element #x00) :accessor ram)
    (elapsed-cycles :initform 0)
    (interrupts-enabled? :initform T :accessor interrupts-enabled?)
-   (halted? :initform nil)
+   (halted? :initform nil :accessor halted?)
    ;; This z80 emulator only implements the CPU. This peripherals list
    ;; allows code using the emulator to attach peripherals on the I/O
    ;; ports that will be written to/read from when the IN/OUT
@@ -251,5 +251,5 @@
          (execute-next-instruction cpu)
          (incf num-instructions)
        while (and (not (>= num-instructions max-instructions))
-                  (not (slot-value cpu 'halted?))))
+                  (not (halted? cpu))))
     cpu))
