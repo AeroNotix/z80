@@ -45,8 +45,8 @@
                              sp-register-le s-flag-cb z-flag-cb
                              f5-flag-cb h-flag-cb f3-flag-cb p-flag-cb
                              n-flag-cb c-flag-cb) instance
-    (#_setText sp-register-le (format nil "~d" (z80::sp (cpu instance))))
-    (#_setText pc-register-le (format nil "~d" (z80::pc (cpu instance))))
+    (#_setText sp-register-le (format nil "0x~X" (z80::sp (cpu instance))))
+    (#_setText pc-register-le (format nil "0x~X" (z80::pc (cpu instance))))
     (cpu-flag-to-ui c-flag-cb #'z80::flag-c cpu)
     (cpu-flag-to-ui halted-cb #'z80::halted? cpu)
     (cpu-flag-to-ui s-flag-cb #'z80::flag-s cpu)
