@@ -19,6 +19,7 @@
    (h-register-le :accessor h-register-le)
    (l-register-le :accessor h-register-le)
    (f-register-le :accessor f-register-le)
+   (halted-cb :accessor halted-cb)
    (s-flag-cb :accessor s-flag-cb)
    (z-flag-cb :accessor z-flag-cb)
    (f5-flag-cb :accessor f5-flag-cb)
@@ -38,12 +39,13 @@
 (defmethod cpu-state-to-ui ((instance main-window) (cpu z80::cpu))
   (with-slots (a-register-le b-register-le c-register-le d-register-le
                              e-register-le h-register-le l-register-le
-                             f-register-le pc-register-le
+                             f-register-le pc-register-le halted-cb
                              sp-register-le s-flag-cb z-flag-cb
                              f5-flag-cb h-flag-cb f3-flag-cb p-flag-cb
                              n-flag-cb c-flag-cb) instance
     (#_setText sp-register-le (format nil "~d" (z80::sp (cpu instance))))
     (#_setText pc-register-le (format nil "~d" (z80::pc (cpu instance))))
+    (cpu-flag-to-ui halted-cb #'z80::halted? cpu)
     (cpu-flag-to-ui s-flag-cb #'z80::flag-s cpu)
     (cpu-flag-to-ui z-flag-cb #'z80::flag-z cpu)
     (cpu-flag-to-ui p-flag-cb #'z80::flag-p cpu)
@@ -85,6 +87,7 @@
         (#_close file)
         (with-slots (run-btn
                      step-btn
+
                      a-register-le
                      b-register-le
                      c-register-le
@@ -95,6 +98,9 @@
                      l-register-le
                      sp-register-le
                      pc-register-le
+
+                     halted-cb
+
                      s-flag-cb
                      z-flag-cb
                      f5-flag-cb
@@ -105,6 +111,7 @@
                      c-flag-cb) instance
           (setf run-btn (find-child window "btn_Run")
                 step-btn (find-child window "btn_Step")
+
                 a-register-le (find-child window "le_A_Reg")
                 b-register-le (find-child window "le_B_Reg")
                 c-register-le (find-child window "le_C_Reg")
@@ -115,6 +122,9 @@
                 f-register-le (find-child window "le_F_Reg")
                 sp-register-le (find-child window "le_SP_Reg")
                 pc-register-le (find-child window "le_PC_Reg")
+
+                halted-cb (find-child window "cb_halted")
+
                 s-flag-cb (find-child window "cb_S_flag")
                 z-flag-cb (find-child window "cb_Z_flag")
                 f5-flag-cb (find-child window "cb_F5_flag")
