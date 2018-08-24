@@ -92,18 +92,14 @@
       (write-from peripheral))))
 
 (defmethod execute-next-instruction ((cpu cpu))
-  (let* ((next-instruction (elt (ram cpu) (pc cpu)))
-         (opcode (elt opcode-table next-instruction))
+  (let* ((opcode (elt (ram cpu) (pc cpu)))
+         (next-instruction (elt instruction-table opcode))
          (orig-pc (pc cpu)))
     (when logging-enabled
       (debug-cpu cpu))
-    (when (eq 0 opcode)
-      (error
-       (format nil "Unknown instruction: ~X / position: ~S"
-               next-instruction (pc cpu))))
-    (funcall (microcode opcode) cpu)
+    (funcall (microcode next-instruction) cpu opcode)
     (when (eq orig-pc (pc cpu))
-      (incf (pc cpu) (size opcode)))))
+      (incf (pc cpu) (size next-instruction)))))
 
 (defparameter 16-bit-register->8-bit-registers (make-hash-table))
 
@@ -202,16 +198,29 @@
 (defmethod flag-n ((cpu cpu))
   (logbitp n-flag-pos (reg-f cpu)))
 
+(defun dump-registers-to-values (cpu)
+  (values (reg-a cpu)
+          (reg-b cpu)
+          (reg-c cpu)
+          (reg-d cpu)
+          (reg-e cpu)
+          (reg-h cpu)
+          (reg-l cpu)
+          (reg-f cpu)))
+
+(defun dump-registers-to-list (cpu)
+  (list (reg-a cpu)
+        (reg-b cpu)
+        (reg-c cpu)
+        (reg-d cpu)
+        (reg-e cpu)
+        (reg-h cpu)
+        (reg-f cpu)))
+
 (defun dump-registers (cpu)
   (format t "~{~{~2a ~^| ~}~%~}~%"
           (list '("a" "b" "c" "d" "e" "h" "f")
-                (list (reg-a cpu)
-                      (reg-b cpu)
-                      (reg-c cpu)
-                      (reg-d cpu)
-                      (reg-e cpu)
-                      (reg-h cpu)
-                      (reg-f cpu)))))
+                (dump-registers-to-list cpu))))
 
 (defun dump-flags (cpu)
   (format t "~{~{~3a ~^| ~}~%~}~%"

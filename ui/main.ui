@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <widget class="QWidget" name="MainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>749</width>
-    <height>615</height>
+    <width>425</width>
+    <height>298</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>420</width>
+     <height>296</height>
+    </rect>
+   </property>
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="1" column="0">
+    <item row="3" column="0">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="maximumSize">
        <size>
@@ -27,57 +35,8 @@
        <string>Registers</string>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="le_SP_Reg">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="3">
-        <widget class="QLineEdit" name="le_PC_Reg">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="3">
-        <widget class="QLineEdit" name="le_L_Reg">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="3">
-        <widget class="QLineEdit" name="le_E_Reg">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="le_D_Reg">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="le_H_Reg">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="le_A_Reg">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QLineEdit" name="le_F_Reg">
+        <widget class="QLineEdit" name="le_D_Reg">
          <property name="readOnly">
           <bool>true</bool>
          </property>
@@ -93,47 +52,35 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_H_Reg">
-         <property name="text">
-          <string>H</string>
-         </property>
-         <property name="buddy">
-          <cstring>le_H_Reg</cstring>
+       <item row="3" column="3">
+        <widget class="QLineEdit" name="le_L_Reg">
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_D_Reg">
-         <property name="text">
-          <string>D</string>
-         </property>
-         <property name="buddy">
-          <cstring>le_D_Reg</cstring>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="le_A_Reg">
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_SP_Reg">
-         <property name="text">
-          <string>SP</string>
-         </property>
-         <property name="buddy">
-          <cstring>le_SP_Reg</cstring>
+       <item row="4" column="3">
+        <widget class="QLineEdit" name="le_PC_Reg">
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_E_Reg">
-         <property name="text">
-          <string>E</string>
-         </property>
-         <property name="buddy">
-          <cstring>le_E_Reg</cstring>
+       <item row="2" column="3">
+        <widget class="QLineEdit" name="le_E_Reg">
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
+       <item row="3" column="2">
         <widget class="QLabel" name="label_L_Reg">
          <property name="text">
           <string>L</string>
@@ -143,7 +90,84 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_D_Reg">
+         <property name="text">
+          <string>D</string>
+         </property>
+         <property name="buddy">
+          <cstring>le_D_Reg</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_E_Reg">
+         <property name="text">
+          <string>E</string>
+         </property>
+         <property name="buddy">
+          <cstring>le_E_Reg</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="le_B_Reg"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_B_Reg">
+         <property name="text">
+          <string>B</string>
+         </property>
+         <property name="buddy">
+          <cstring>le_B_Reg</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_C_Reg">
+         <property name="text">
+          <string>C</string>
+         </property>
+         <property name="buddy">
+          <cstring>le_C_Reg</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_SP_Reg">
+         <property name="text">
+          <string>SP</string>
+         </property>
+         <property name="buddy">
+          <cstring>le_SP_Reg</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="le_SP_Reg">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_H_Reg">
+         <property name="text">
+          <string>H</string>
+         </property>
+         <property name="buddy">
+          <cstring>le_H_Reg</cstring>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="le_H_Reg">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
         <widget class="QLabel" name="label_PC_Reg">
          <property name="text">
           <string>PC</string>
@@ -163,10 +187,116 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="3">
+        <widget class="QLineEdit" name="le_F_Reg">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QLineEdit" name="le_C_Reg"/>
+       </item>
       </layout>
      </widget>
     </item>
-    <item row="2" column="0">
+    <item row="0" column="0" colspan="4">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>FLAGS</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QCheckBox" name="cb_S_flag">
+           <property name="text">
+            <string>S</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_Z_flag">
+           <property name="text">
+            <string>Z</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_F5_flag">
+           <property name="text">
+            <string>F5</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_H_flag">
+           <property name="text">
+            <string>H</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_F3_flag">
+           <property name="text">
+            <string>F3</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_PV_flag">
+           <property name="text">
+            <string>P/V</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_N_flag">
+           <property name="text">
+            <string>N</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cb_C_flag">
+           <property name="text">
+            <string>C</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="8" column="1">
+     <widget class="QPushButton" name="btn_Step">
+      <property name="text">
+       <string>Step</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QPushButton" name="btn_Run">
+      <property name="text">
+       <string>Run</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="7" column="0">
      <spacer name="verticalSpacer">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -179,94 +309,13 @@
       </property>
      </spacer>
     </item>
-    <item row="1" column="1">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="0" column="0" colspan="2">
-     <widget class="QGroupBox" name="groupBox">
-      <property name="title">
-       <string>FLAGS</string>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QCheckBox" name="checkBox_8">
-           <property name="text">
-            <string>S</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_7">
-           <property name="text">
-            <string>Z</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_6">
-           <property name="text">
-            <string>F5</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_5">
-           <property name="text">
-            <string>H</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_4">
-           <property name="text">
-            <string>F3</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_3">
-           <property name="text">
-            <string>P/V</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox_2">
-           <property name="text">
-            <string>N</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QCheckBox" name="checkBox">
-           <property name="text">
-            <string>C</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-    </item>
    </layout>
    <zorder>groupBox</zorder>
-   <zorder>radioButton_8</zorder>
    <zorder>groupBox_2</zorder>
    <zorder>verticalSpacer</zorder>
-   <zorder>horizontalSpacer</zorder>
+   <zorder>horizontalSpacer_2</zorder>
+   <zorder>btn_Run</zorder>
+   <zorder>btn_Step</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -277,9 +326,34 @@
      <height>20</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad_Rom"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>3</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <action name="actionLoad_Rom">
+   <property name="text">
+    <string>Load Rom...</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
+ <slots>
+  <slot>run_emulator()</slot>
+  <slot>single_step_emulator()</slot>
+ </slots>
 </ui>
