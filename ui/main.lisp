@@ -4,6 +4,7 @@
 
 (qt:ensure-smoke "qtuitools")
 
+;;; TODO: macro/implement cluic
 (defclass main-window ()
   ((cpu :accessor cpu :initform (make-instance 'z80::cpu))
    (run-btn :accessor run-btn)
