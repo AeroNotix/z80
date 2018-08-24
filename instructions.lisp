@@ -269,7 +269,7 @@
 
 (define-instruction and-r #x1 (cpu opcode)
   (warn "and-r doesn't set flags, yet")
-  (setf (reg-a cpu) (logand (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
+  (setf (reg-a cpu) (logand (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) cpu))))
 
 (define-instruction and-n #x2 (cpu opcode)
   (warn "and-n doesn't set flags, yet")
@@ -277,7 +277,7 @@
 
 (define-instruction xor-r #x1 (cpu opcode)
   (warn "xor-r doesn't set flags, yet")
-  (setf (reg-a cpu) (logxor (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
+  (setf (reg-a cpu) (logxor (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) cpu))))
 
 (define-instruction xor-n #x2 (cpu opcode)
   (warn "xor-n doesn't set flags, yet")
@@ -285,16 +285,19 @@
 
 (define-instruction or-r #x1 (cpu opcode)
   (warn "or-r doesn't set flags, yet")
-  (setf (reg-a cpu) (logior (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) c))))
+  (setf (reg-a cpu)
+        (logior (reg-a cpu)
+                (funcall (find-8-bit-register (opcode-z opcode)) cpu))))
 
 (define-instruction or-n #x2 (cpu opcode)
   (warn "or-n doesn't set flags, yet")
   (setf (reg-a cpu) (logior (reg-a cpu) (fetch-byte-from-ram cpu))))
 
-(define-instruction jr-cc-d #x1 (cpu opcode)
-  (let ((jump-offset (unsigned->signed (fetch-byte-from-ram cpu)))
-        (jump-condition (opcode-q opcode)))
-    (when (funcall jump-condition)
+(define-instruction jr-cc-d #x2 (cpu opcode)
+  ;; +2 to the jump offset as the jr-cc-d instruction is two bytes itself
+  (let ((jump-offset (+ 2 (unsigned->signed (fetch-byte-from-ram cpu) 1)))
+        (jump-condition (find-condition (opcode-q opcode))))
+    (when (funcall jump-condition cpu)
       (incf (pc cpu) jump-offset))))
 
 (define-instruction jp-cc-nn #x3 (cpu opcode)
