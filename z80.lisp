@@ -118,7 +118,7 @@
 (defmethod write-port ((cpu cpu) port-id value)
   (let ((peripheral (nth port-id (peripherals cpu))))
     (when peripheral
-      (write-from peripheral))))
+      (write-to peripheral))))
 
 (defmethod carry-flag ((cpu cpu))
   (logand 1 (reg-f cpu)))
