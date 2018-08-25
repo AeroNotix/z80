@@ -195,10 +195,10 @@
   (setf (reg-f cpu) (logior c-mask (reg-f cpu))))
 
 (define-instruction ccf #x1 (cpu opcode)
-  (error "Not implemented: invert carry flag"))
+  (error "Not implemented (ccf): invert carry flag"))
 
 (define-instruction cpl #x1 (cpu opcode)
-  (error "Not implemented: flip bits in reg-a"))
+  (error "Not implemented (cpl): flip bits in reg-a"))
 
 (define-instruction cp-r #x1 (cpu opcode)
   (let* ((z (find-8-bit-register (opcode-z opcode)))
@@ -213,19 +213,19 @@
     (setf (reg-f cpu) next-flags)))
 
 (define-instruction daa #x1 (cpu opcode)
-  (error "Not implemented: adjust register a for BCD"))
+  (error "Not implemented (daa): adjust register a for BCD"))
 
 (define-instruction rra #x1 (cpu opcode)
-  (error "fuck-knows-what-to-do-with-this-opcode"))
+  (error "Not implemented (rra): rotate a right, copy flags accordingly"))
 
 (define-instruction rla #x1 (cpu opcode)
-  (error "fuck-knows-what-to-do-with-this-opcode"))
+  (error "Not implemented (rla): rotate a left, copy flags accordingly"))
 
 (define-instruction rlca #x1 (cpu opcode)
-  (error "fuck-knows-what-to-do-with-this-opcode"))
+  (error "Not implemented (rlca): rotate a left, copy flags accordingly"))
 
 (define-instruction rrca #x1 (cpu opcode)
-  (error "fuck-knows-what-to-do-with-this-opcode"))
+  (error "Not implemented (rrca): rotate a left, copy flags accordingly"))
 
 (define-instruction ex-af-af% #x1 (cpu opcode)
   (rotatef (reg-af cpu)
