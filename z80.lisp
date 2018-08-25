@@ -181,11 +181,12 @@
     (when (eq orig-pc (pc cpu))
       (incf (pc cpu) (size next-instruction)))))
 
-(defun emulate-rom (cpu rom-path &key (max-instructions single-float-positive-infinity))
+(defun emulate-rom (cpu rom-path &key (starting-pc 0) (max-instructions single-float-positive-infinity))
   (load-ram-from-rom-file cpu rom-path)
-  (emulate cpu :max-instructions max-instructions))
+  (emulate cpu :starting-pc starting-pc :max-instructions max-instructions))
 
-(defun emulate (cpu &key (max-instructions single-float-positive-infinity))
+(defun emulate (cpu &key (starting-pc 0) (max-instructions single-float-positive-infinity))
+  (setf (pc cpu) starting-pc)
   (let ((num-instructions 0))
     (loop do
          (execute-next-instruction cpu)
