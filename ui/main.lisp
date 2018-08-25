@@ -9,6 +9,7 @@
   ((cpu :accessor cpu :initform (make-instance 'z80::cpu))
    (run-btn :accessor run-btn)
    (step-btn :accessor step-btn)
+   (current-instruction-le :accessor current-instruction-le)
    (sp-register-le :accessor sp-register-le)
    (pc-register-le :accessor pc-register-le)
    (a-register-le :accessor a-register-le)
@@ -44,7 +45,7 @@
                              f-register-le pc-register-le halted-cb
                              sp-register-le s-flag-cb z-flag-cb
                              f5-flag-cb h-flag-cb f3-flag-cb p-flag-cb
-                             n-flag-cb c-flag-cb) instance
+                             n-flag-cb c-flag-cb current-instruction-le) instance
     (#_setText sp-register-le (format nil "0x~X" (z80::sp (cpu instance))))
     (#_setText pc-register-le (format nil "0x~X" (z80::pc (cpu instance))))
     (cpu-flag-to-ui c-flag-cb #'z80::flag-c cpu)
@@ -53,6 +54,9 @@
     (cpu-flag-to-ui z-flag-cb #'z80::flag-z cpu)
     (cpu-flag-to-ui p-flag-cb #'z80::flag-p cpu)
     (cpu-flag-to-ui h-flag-cb #'z80::flag-h cpu)
+    (let ((current-instruction (elt (z80::ram cpu) (z80::pc cpu))))
+      (#_setText current-instruction-le
+                 (format nil "0x~X | ~A" current-instruction (z80::name (elt z80::instruction-table current-instruction)))))
     (multiple-value-bind (a-reg b-reg c-reg d-reg e-reg h-reg l-reg f-reg) (z80::dump-registers-to-values cpu)
       (#_setText a-register-le (format nil "0x~X" a-reg))
       (#_setText b-register-le (format nil "0x~X" b-reg))
@@ -110,6 +114,8 @@
         (with-slots (run-btn
                      step-btn
 
+                     current-instruction-le
+
                      a-register-le
                      b-register-le
                      c-register-le
@@ -131,7 +137,8 @@
                      p-flag-cb
                      n-flag-cb
                      c-flag-cb) instance
-          (setf run-btn (find-child window "btn_Run")
+          (setf current-instruction-le (find-child window "le_current_instruction")
+                run-btn (find-child window "btn_Run")
                 step-btn (find-child window "btn_Step")
 
                 a-register-le (find-child window "le_A_Reg")
