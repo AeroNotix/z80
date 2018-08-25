@@ -6,6 +6,9 @@
    (cycles :initarg :cycles)
    (microcode :initarg :microcode :accessor microcode)))
 
+(defmethod print-object ((int instruction) out)
+  (format out "<INSTRUCTION {~A}>" (name int)))
+
 (defmacro define-instruction (name size args &body body)
 
   `(let* ((inst (make-instance 'instruction
