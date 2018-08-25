@@ -293,12 +293,9 @@
 	           rst-p
                )))
 
-(defparameter flag-table
+(defparameter condition-table
   (list #'flag-nz #'flag-z #'flag-nc #'flag-c
         #'flag-po #'flag-pe #'flag-p #'flag-m))
-
-(defparameter condition-table
-  (list #'flag-nz #'flag-nc #'flag-z #'flag-c))
 
 (defun find-condition (opcode-y)
   (elt condition-table opcode-y))

@@ -46,8 +46,8 @@
 (defun push% (cpu &rest values)
   (loop for value in values
      do
-       (setf (mem-sp cpu) value)
-       (decf (reg-sp cpu))))
+       (decf (reg-sp cpu))
+       (setf (mem-sp cpu) value)))
 
 (defun push-from (cpu place)
   (let ((upper-reg (first (16-bit-register->8-bit-registers place)))
@@ -66,10 +66,12 @@
   (let ((lower (mem-sp cpu)))
     (incf (reg-sp cpu))
     (let ((upper (mem-sp cpu)))
-      (setf (pc cpu) (logand (ash upper 8) lower)))))
+      (incf (reg-sp cpu))
+      (setf (pc cpu) (logior (ash upper 8) lower)))))
 
 (defun call (cpu address)
-  (push% cpu (+ 3 (pc cpu)))
+  (incf (pc cpu) 3)
+  (push% cpu (reg-pc-p cpu) (reg-pc-c cpu))
   (setf (pc cpu) address))
 
 (defun ld (c y z)
@@ -196,10 +198,16 @@
   (error "Not implemented: flip bits in reg-a"))
 
 (define-instruction cp-r #x1 (cpu opcode)
-  (error "Not implemented: subtract r from reg-a, affect flag, reg-a unaffected"))
+  (let* ((z (find-8-bit-register (opcode-z opcode)))
+         (result (- (reg-a cpu) (funcall z cpu)))
+         (next-flags (calculate-flags result)))
+    (setf (reg-f cpu) next-flags)))
 
 (define-instruction cp-n #x2 (cpu opcode)
-  (error "Not implemented: subtract n from reg-a, affect flag, reg-a unaffected"))
+  (let* ((value (fetch-byte-from-ram cpu))
+         (result (- (reg-a cpu) value))
+         (next-flags (calculate-flags result)))
+    (setf (reg-f cpu) next-flags)))
 
 (define-instruction daa #x1 (cpu opcode)
   (error "Not implemented: adjust register a for BCD"))
@@ -306,7 +314,7 @@
       (setf (pc cpu) jump-address))))
 
 (define-instruction jp-nn #x3 (cpu opcode)
-  (let ((jump-address (fetch-byte-from-ram cpu)))
+  (let ((jump-address (fetch-word cpu)))
     (setf (pc cpu) jump-address)))
 
 (define-instruction jp-hl #x3 (cpu opcode)
@@ -331,7 +339,7 @@
     (pop-to register)))
 
 (define-instruction ret-cc #x1 (cpu opcode)
-  (let ((condition (find-condition (opcode-y))))
+  (let ((condition (find-condition (opcode-y opcode))))
     (when (funcall condition cpu)
       (ret cpu))))
 
