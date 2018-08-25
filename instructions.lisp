@@ -128,11 +128,11 @@
 
 (define-instruction ld-r-indirect-hl #x1 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y opcode))))
-    (ld y cpu #'mem-hl)))
+    (ld cpu y 'mem-hl)))
 
 (define-instruction ld-indirect-hl-r #x1 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode))))
-    (ld #'mem-hl cpu z)))
+    (ld cpu 'mem-hl z)))
 
 (define-instruction ld-indirect-bc-a #x1 (cpu opcode)
   (setf (mem-bc cpu) (reg-a cpu)))

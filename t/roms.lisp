@@ -32,5 +32,6 @@
                                         (list "flags.rom" #'z80::reg-a 123)
                                         (list "jz-flag.rom" #'z80::reg-a 255)
                                         (list "jnz-flag.rom" #'z80::reg-a 255)
-                                        (list "jc-flag.rom" #'z80::reg-a 66))))
+                                        (list "jc-flag.rom" #'z80::reg-a 66)
+                                        (list "load-indirect.rom" #'z80::reg-a 123))))
     (mapcar (lambda (args) (apply #'test-rom args)) roms-and-expected-values)))
