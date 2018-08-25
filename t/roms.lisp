@@ -15,10 +15,23 @@
 (defmethod z80::read-from ((fp fake-peripheral))
   #x0050)
 
-(defun test-rom (rom-filename value-extractor expected-value)
+(defmacro with-stdout-to-string (&body forms)
+  `(let ((*standard-output* (make-string-output-stream)))
+     ,@forms
+     (get-output-stream-string *standard-output*)))
+
+(defun test-register-assertion-rom (rom-filename value-extractor expected-value)
   (let ((rom (get-rom rom-filename))
-        (cpu (make-instance 'z80:cpu :peripherals (list (make-instance 'fake-peripheral)))))
-    (is (eq (funcall value-extractor (z80:emulate-rom cpu rom)) expected-value))))
+        (cpu (make-instance 'z80:cpu
+                            :peripherals (list (make-instance 'fake-peripheral)))))
+    (z80:emulate-rom cpu rom)
+    (is (eql (funcall value-extractor cpu) expected-value))))
+
+(defun test-io-assertion-rom (rom-filename expected-output &optional (starting-pc 0))
+  (let ((rom (get-rom rom-filename))
+        (cpu (make-instance 'z80:cpu
+                            :peripherals (list (make-instance 'z80::terminal-printer-peripheral)))))
+    (is (equal expected-output (with-stdout-to-string (z80:emulate-rom cpu rom :starting-pc starting-pc))))))
 
 (def-test expected-register-value-roms (:suite roms)
   ;; assertion values are just any old value chosen. Often chosen to
@@ -33,5 +46,11 @@
                                         (list "jz-flag.rom" #'z80::reg-a 255)
                                         (list "jnz-flag.rom" #'z80::reg-a 255)
                                         (list "jc-flag.rom" #'z80::reg-a 66)
-                                        (list "load-indirect.rom" #'z80::reg-a 123))))
-    (mapcar (lambda (args) (apply #'test-rom args)) roms-and-expected-values)))
+                                        (list "load-indirect.rom" #'z80::reg-a 123)
+                                   (list "cp-nz-test.rom" #'z80::reg-a 255)
+                                   (list "cp-z-test.rom" #'z80::reg-a 255))))
+    (mapcar (lambda (args) (apply #'test-register-assertion-rom args)) roms-and-expected-values)))
+
+(def-test expected-io-roms (:suite roms)
+  (let ((roms-and-expected-output (list (list "peripheral-test.rom" (format nil "THISISATEST~C~C" #\Newline #\Return) #x0100))))
+    (mapcar (lambda (args) (apply #'test-io-assertion-rom args)) roms-and-expected-output)))

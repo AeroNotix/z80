@@ -1,0 +1,12 @@
+    .ORG 0000H
+    LD A, 127
+    CP 123
+    JP NZ, SET_PASS_TEST
+    JP SET_FAIL_TEST
+
+SET_FAIL_TEST:
+    LD A, 0
+    HALT
+SET_PASS_TEST:
+    LD A, 255
+    HALT
