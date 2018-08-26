@@ -337,11 +337,11 @@
 
 (define-instruction push-register #x1 (cpu opcode)
   (let ((register (find-16-bit-register% (opcode-p opcode))))
-    (push-from register)))
+    (push-from cpu egister)))
 
 (define-instruction pop-register #x1 (cpu opcode)
   (let ((register (find-16-bit-register% (opcode-p opcode))))
-    (pop-to register)))
+    (pop-to cpu register)))
 
 (define-instruction ret-cc #x1 (cpu opcode)
   (let ((condition (find-condition (opcode-y opcode))))
