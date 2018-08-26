@@ -53,13 +53,13 @@
        (setf (mem-sp cpu) value)))
 
 (defun push-from (cpu place)
-  (let ((upper-reg (first (16-bit-register->8-bit-registers place)))
-        (lower-reg (second (16-bit-register->8-bit-registers place))))
+  (let ((upper-reg (car (16-bit-register->8-bit-registers place)))
+        (lower-reg (cdr (16-bit-register->8-bit-registers place))))
     (push% cpu (funcall upper-reg cpu) (funcall lower-reg cpu))))
 
 (defun pop-to (cpu place)
-  (let ((upper-reg (first (16-bit-register->8-bit-registers place)))
-        (lower-reg (second (16-bit-register->8-bit-registers place))))
+  (let ((upper-reg (car (16-bit-register->8-bit-registers place)))
+        (lower-reg (cdr (16-bit-register->8-bit-registers place))))
     (setf (mem-sp cpu) (funcall upper-reg cpu))
     (incf (reg-sp cpu))
     (setf (mem-sp cpu) (funcall lower-reg cpu))
