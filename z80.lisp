@@ -147,6 +147,9 @@
 (defmethod flag-c ((cpu cpu))
   (logbitp c-flag-pos (reg-f cpu)))
 
+(defun (setf flag-c) (value cpu)
+  (setf (reg-f cpu) (logior (reg-f cpu) (ash value c-flag-pos))))
+
 (defmethod flag-nc ((cpu cpu))
   (not (flag-c cpu)))
 

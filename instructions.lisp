@@ -222,7 +222,9 @@
   (error "Not implemented (rla): rotate a left, copy flags accordingly"))
 
 (define-instruction rlca #x1 (cpu opcode)
-  (error "Not implemented (rlca): rotate a left, copy flags accordingly"))
+  (let ((bit-7 (ash (reg-a cpu) -7)))
+    (setf (flag-c cpu) bit-7)
+    (setf (reg-a cpu) (logior (ash (reg-a cpu) 1) bit-7))))
 
 (define-instruction rrca #x1 (cpu opcode)
   (error "Not implemented (rrca): rotate a left, copy flags accordingly"))
