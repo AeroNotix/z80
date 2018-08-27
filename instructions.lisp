@@ -35,16 +35,16 @@
 ;;         |-p-|   q
 
 (defun opcode-y (opcode)
-  (logand (ash opcode -3) #x07))
+  (logand (rshift opcode 3) #x07))
 
 (defun opcode-z (opcode)
   (logand opcode #x07))
 
 (defun opcode-p (opcode)
-  (logand (ash opcode -4) #x03))
+  (logand (rshift opcode 4) #x03))
 
 (defun opcode-q (opcode)
-  (logand (ash opcode -3) #x03))
+  (logand (rshift opcode 3) #x03))
 
 (defun push% (cpu &rest values)
   (loop for value in values
@@ -222,7 +222,7 @@
   (error "Not implemented (rla): rotate a left, copy flags accordingly"))
 
 (define-instruction rlca #x1 (cpu opcode)
-  (let ((bit-7 (ash (reg-a cpu) -7)))
+  (let ((bit-7 (rshift (reg-a cpu) 7)))
     (setf (flag-c cpu) bit-7)
     (setf (reg-a cpu) (logior (ash (reg-a cpu) 1) bit-7))))
 
