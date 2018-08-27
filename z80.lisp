@@ -125,8 +125,10 @@
       (write-to peripheral value))))
 
 (defmethod port-c ((cpu cpu))
+  (read-from (elt (peripherals cpu) (reg-c cpu))))
 
 (defmethod (setf port-c) (value (cpu cpu))
+  (write-port cpu (elt (peripherals cpu) (reg-c cpu)) value))
 
 (defmethod flag-s ((cpu cpu))
   (logbitp s-flag-pos (reg-f cpu)))
