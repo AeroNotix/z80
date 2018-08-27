@@ -109,6 +109,10 @@
 (defmethod fetch-word-from-ram ((cpu cpu))
   (read-word cpu :address (1+ (pc cpu))))
 
+(defmethod write-word-to-ram ((cpu cpu) address value)
+  (setf (elt (ram cpu) address) (rshift value 8))
+  (setf (elt (ram cpu) (1+ address)) (logand #x00FF value)))
+
 (defmethod read-port ((cpu cpu) port-id)
   (let ((peripheral (nth port-id (peripherals cpu))))
     (if peripheral
