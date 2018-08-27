@@ -124,17 +124,9 @@
     (when peripheral
       (write-to peripheral value))))
 
-(defmethod carry-flag ((cpu cpu))
-  (logand 1 (reg-f cpu)))
+(defmethod port-c ((cpu cpu))
 
-(defmethod carry-flag-set? ((cpu cpu))
-  (eq 1 (carry-flag cpu)))
-
-(defmethod zero-flag ((cpu cpu))
-  (logand #x40 (reg-f cpu)))
-
-(defmethod zero-flag-set? ((cpu cpu))
-  (eq 1 (carry-flag cpu)))
+(defmethod (setf port-c) (value (cpu cpu))
 
 (defmethod flag-s ((cpu cpu))
   (logbitp s-flag-pos (reg-f cpu)))
