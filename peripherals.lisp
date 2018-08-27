@@ -11,4 +11,5 @@
   (:documentation "Simple peripheral that prints chars to the terminal"))
 
 (defmethod write-to ((tpp terminal-printer-peripheral) (b integer))
-  (format t "~C" (code-char b)))
+  (format t "~C" (code-char b))
+  (finish-output))
