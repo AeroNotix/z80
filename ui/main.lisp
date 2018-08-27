@@ -6,7 +6,10 @@
 
 ;;; TODO: macro/implement cluic
 (defclass main-window ()
-  ((cpu :accessor cpu :initform (make-instance 'z80::cpu))
+  ((cpu :accessor cpu :initform
+        (make-instance
+         'z80::cpu
+         :peripherals (list (make-instance 'z80::terminal-printer-peripheral))))
    (run-btn :accessor run-btn)
    (step-btn :accessor step-btn)
    (current-instruction-le :accessor current-instruction-le)
