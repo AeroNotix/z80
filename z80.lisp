@@ -102,11 +102,11 @@
 (defmethod fetch-byte-from-ram ((cpu cpu))
   (read-byte-from-ram cpu :address (1+ (pc cpu))))
 
-(defmethod read-word ((cpu cpu) &key (address (pc cpu)))
-  (spy (logior (logand #xFFFF (elt (ram cpu) address))
-               (logand #xFFFF (ash (elt (ram cpu) (1+ address)) 8)))))
+(defmethod read-word-from-ram ((cpu cpu) &key (address (pc cpu)))
+  (logior (logand #xFFFF (elt (ram cpu) address))
+          (logand #xFFFF (ash (elt (ram cpu) (1+ address)) 8))))
 
-(defmethod fetch-word ((cpu cpu))
+(defmethod fetch-word-from-ram ((cpu cpu))
   (read-word cpu :address (1+ (pc cpu))))
 
 (defmethod read-port ((cpu cpu) port-id)

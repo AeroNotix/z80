@@ -129,7 +129,7 @@
 ;; 16-bit load immediate LD rp[p], nn
 (define-instruction ld-rr-nn #x3 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
-    (ld cpu p #'fetch-word)))
+    (ld cpu p #'fetch-word-from-ram)))
 
 (define-instruction ld-r-indirect-hl #x1 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y opcode))))
@@ -152,16 +152,16 @@
   (setf (reg-a cpu) (mem-bc cpu)))
 
 (define-instruction ld-a-indirect-nn #x3 (cpu opcode)
-  (setf (reg-a cpu) (elt (ram cpu) (fetch-word cpu))))
+  (setf (reg-a cpu) (elt (ram cpu) (fetch-word-from-ram cpu))))
 
 (define-instruction ld-indirect-nn-hl #x3 (cpu opcode)
-  (setf (elt (ram cpu) (fetch-word cpu)) (reg-hl cpu)))
+  (setf (elt (ram cpu) (fetch-word-from-ram cpu)) (reg-hl cpu)))
 
 (define-instruction ld-indirect-nn-a #x3 (cpu opcode)
-  (setf (elt (ram cpu) (fetch-word cpu)) (reg-a cpu)))
+  (setf (elt (ram cpu) (fetch-word-from-ram cpu)) (reg-a cpu)))
 
 (define-instruction ld-hl-indirect-nn #x3 (cpu opcode)
-  (setf (reg-hl cpu) (elt (ram cpu) (fetch-word cpu))))
+  (setf (reg-hl cpu) (elt (ram cpu) (fetch-word-from-ram cpu))))
 
 (define-instruction ld-indirect-hl-n #x2 (cpu opcode)
   (setf (mem-hl cpu) (fetch-byte-from-ram cpu)))
@@ -319,7 +319,7 @@
       (setf (pc cpu) jump-address))))
 
 (define-instruction jp-nn #x3 (cpu opcode)
-  (let ((jump-address (fetch-word cpu)))
+  (let ((jump-address (fetch-word-from-ram cpu)))
     (setf (pc cpu) jump-address)))
 
 (define-instruction jp-hl #x3 (cpu opcode)
@@ -356,10 +356,10 @@
 (define-instruction call-cc-nn #x3 (cpu opcode)
   (let ((condition (find-condition (opcode-y cpu))))
     (when (funcall condition cpu)
-      (call cpu (fetch-word cpu)))))
+      (call cpu (fetch-word-from-ram cpu)))))
 
 (define-instruction call-nn #x3 (cpu opcode)
-  (call cpu (fetch-word cpu)))
+  (call cpu (fetch-word-from-ram cpu)))
 
 (define-instruction rst-p #x1 (cpu opcode)
   (let ((y (opcode-y opcode))
