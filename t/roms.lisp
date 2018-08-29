@@ -65,7 +65,7 @@
     (apply-tests #'test-io-assertion-rom roms-and-expected-output)))
 
 (def-test expected-ram-roms (:suite roms)
-  (let ((roms-and-expected-ram-data (list (list "block-move.rom"
+  (let ((roms-and-expected-ram-data (list (list "block-move-ldir.rom"
                                                 #(#x56 #x56 #x56 #x56 #x56
                                                   #x56 #x56 #x56 #x56 #x56
                                                   #x56 #x56 #x56 #x56 #x56
