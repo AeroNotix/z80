@@ -11,11 +11,14 @@
   (format out "<INSTRUCTION {~A}>" (name int)))
 
 (defmacro define-instruction (name size args &body body)
-  `(let* ((inst (make-instance 'instruction
-                               :name ',name
-                               :size ,size
-                               :microcode (lambda ,args ,@body))))
-     (defparameter ,name inst)))
+  (let ((microcode-fn-name
+         (intern (concatenate 'string (symbol-name name) "-MICROCODE"))))
+    `(flet ((,microcode-fn-name ,args ,@body))
+       (let* ((inst (make-instance 'instruction
+                                   :name ',name
+                                   :size ,size
+                                   :microcode #',microcode-fn-name)))
+         (defparameter ,name inst)))))
 
 (defmacro setf-of (place)
   `(fdefinition `(setf ,,place)))
