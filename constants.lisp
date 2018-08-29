@@ -23,4 +23,7 @@
 ;; put this somewhere better, external library?
 (defconstant single-float-positive-infinity
   #+sbcl sb-ext:single-float-positive-infinity
-  #-sbcl most-positive-single-float)
+  #-sbcl(progn
+      (warn "Non SBCL platforms need a better representation of
+      infinity! This will terminate the CPU after 3.4028235f83 cycles!")
+      sbcl most-positive-single-float))
