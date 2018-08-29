@@ -33,6 +33,15 @@
                             :peripherals (list (make-instance 'z80::terminal-printer-peripheral)))))
     (is (equal expected-output (with-stdout-to-string (z80:emulate-rom cpu rom :starting-pc starting-pc))))))
 
+(defun test-ram-assertion-rom (rom-filename expected-value start end)
+  (let ((rom (get-rom rom-filename))
+        (cpu (make-instance 'z80:cpu)))
+    (is (equalp (subseq  (z80::ram (z80:emulate-rom cpu rom)) start end) expected-value))))
+
+(defun apply-tests (asserter args)
+  (handler-bind ((warning (lambda (w) (declare (ignore w)) (muffle-warning))))
+    (mapcar (lambda (arg) (apply asserter arg)) args)))
+
 (def-test expected-register-value-roms (:suite roms)
   ;; assertion values are just any old value chosen. Often chosen to
   ;; be relatively "impossible" to achieve accidentally from the
@@ -49,8 +58,18 @@
                                         (list "load-indirect.rom" #'z80::reg-a 123)
                                         (list "cp-nz-test.rom" #'z80::reg-a 255)
                                         (list "cp-z-test.rom" #'z80::reg-a 255))))
-    (mapcar (lambda (args) (apply #'test-register-assertion-rom args)) roms-and-expected-values)))
+    (apply-tests #'test-register-assertion-rom roms-and-expected-values)))
 
 (def-test expected-io-roms (:suite roms)
   (let ((roms-and-expected-output (list (list "peripheral-test.rom" (format nil "THISISATEST~C~C" #\Newline #\Return) #x0100))))
-    (mapcar (lambda (args) (apply #'test-io-assertion-rom args)) roms-and-expected-output)))
+    (apply-tests #'test-io-assertion-rom roms-and-expected-output)))
+
+(def-test expected-ram-roms (:suite roms)
+  (let ((roms-and-expected-ram-data (list (list "block-move.rom"
+                                                #(#x56 #x56 #x56 #x56 #x56
+                                                  #x56 #x56 #x56 #x56 #x56
+                                                  #x56 #x56 #x56 #x56 #x56
+                                                  #x56 #x56 #x56 #x56 #x56)
+                                                #x23
+                                                (+ #x23 #x14)))))
+    (apply-tests #'test-ram-assertion-rom roms-and-expected-ram-data)))
