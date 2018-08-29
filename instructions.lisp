@@ -3,7 +3,8 @@
 (defclass instruction ()
   ((name :initarg :name :accessor name)
    (size :initarg :size :accessor size)
-   (cycles :initarg :cycles)
+   ;; TODO: Implement cycle counting, will be for timing/R register
+   ;(cycles :initarg :cycles)
    (microcode :initarg :microcode :accessor microcode)))
 
 (defmethod print-object ((int instruction) out)
