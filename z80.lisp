@@ -14,6 +14,9 @@
    (r :initform 0 :accessor reg-r)
    ;; I: the IV register
    (i :initform 0 :accessor reg-i)
+   ;; Index registers
+   (ix :initform 0)
+   (iy :initform 0)
    ;; AF: 8-bit accumulator (A) and flag bits (F) carry, zero, minus,
    ;;     parity/overflow, half-carry (used for BCD), and an
    ;;     Add/Subtract flag (usually called N) also for BCD
@@ -81,6 +84,8 @@
      (setf (gethash ',whole-accessor 16-bit-register->8-bit-registers)
            (cons ',upper-accessor ',lower-accessor)))))
 
+(define-register-operators ix i-ix x)
+(define-register-operators iy i-iy y)
 (define-register-operators af a f)
 (define-register-operators bc b c)
 (define-register-operators de d e)
