@@ -478,21 +478,21 @@ reach zero.
 
 |#
 
-(defmethod block-transfer-instruction ((cpu cpu) op)
+(defmethod block-move-instruction ((cpu cpu) op)
   (setf (mem-be cpu) (mem-hl cpu))
   (setf (reg-hl cpu) (funcall op (reg-hl cpu)))
   (setf (reg-de cpu) (funcall op (reg-de cpu)))
   (decf (reg-bc cpu)))
 
 (define-instruction ldd #x2 (cpu opcode)
-  (block-transfer-instruction cpu #'1-))
+  (block-move-instruction cpu #'1-))
+
+(define-instruction ldi #x2 (cpu opcode)
+  (block-move-instruction cpu #'1+))
 
 (define-instruction lddr #x2 (cpu opcode)
   (while (plusp (reg-bc cpu))
     (funcall (microcode ldd) cpu)))
-
-(define-instruction ldi #x2 (cpu opcode)
-  (block-transfer-instruction cpu #'1+))
 
 (define-instruction ldir #x2 (cpu opcode)
   (while (plusp (reg-bc cpu))
