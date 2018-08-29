@@ -462,10 +462,10 @@
     ;; define this
     (when (= opcode #x6F)
       (setf (reg-a cpu) (logand mem-hl-upper-tetrade a-upper-tetrade))
-      (setf (mem-hl (logand (ash mem-hl-lower-tetrade 8) a-lower-tetrade))))
+      (setf (mem-hl cpu) (logand (ash mem-hl-lower-tetrade 8) a-lower-tetrade)))
     (when (= opcode #x67)
       (setf (reg-a cpu) (logand a-upper-tetrade mem-hl-lower-tetrade))
-      (setf (mem-hl (logand (ash a-lower-tetrade 8) (rshift mem-hl-upper-tetrade 8)))))))
+      (setf (mem-hl cpu) (logand (ash a-lower-tetrade 8) (rshift mem-hl-upper-tetrade 8))))))
 
 #|
 
@@ -482,7 +482,7 @@ reach zero.
 |#
 
 (defmethod block-move-instruction ((cpu cpu) op)
-  (setf (mem-be cpu) (mem-hl cpu))
+  (setf (mem-de cpu) (mem-hl cpu))
   (setf (reg-hl cpu) (funcall op (reg-hl cpu)))
   (setf (reg-de cpu) (funcall op (reg-de cpu)))
   (decf (reg-bc cpu)))
