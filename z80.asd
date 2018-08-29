@@ -4,6 +4,7 @@
   :licence "BSD"
   :serial t
   :components ((:file "package")
+               (:file "macros")
                (:file "constants")
                (:file "z80")
                (:file "debug")
