@@ -487,19 +487,19 @@ reach zero.
   (setf (reg-de cpu) (funcall op (reg-de cpu)))
   (decf (reg-bc cpu)))
 
-(define-instruction ldd #x2 (cpu opcode)
-  (block-move-instruction cpu #'1-))
-
 (define-instruction ldi #x2 (cpu opcode)
   (block-move-instruction cpu #'1+))
 
-(define-instruction lddr #x2 (cpu opcode)
-  (while (plusp (reg-bc cpu))
-    (funcall (microcode ldd) cpu)))
+(define-instruction ldd #x2 (cpu opcode)
+  (block-move-instruction cpu #'1-))
 
 (define-instruction ldir #x2 (cpu opcode)
   (while (plusp (reg-bc cpu))
-    (funcall (microcode ldi) cpu)))
+    (block-move-instruction cpu #'1+)))
+
+(define-instruction lddr #x2 (cpu opcode)
+  (while (plusp (reg-bc cpu))
+    (block-move-instruction cpu #'1-)))
 
 (defmethod block-compare-instruction ((cpu cpu) op)
   (let* ((result (- (reg-a cpu) (mem-hl cpu))))
@@ -562,7 +562,7 @@ reach zero.
     (block-output-instruction cpu #'1-)))
 
 (define-instruction cpd #x2 (cpu opcode)
-
+  )
 
 (define-instruction cb-prefix #x2 (cpu opcode)
   (error "Not implemented: cb-prefixes, switch the instruction table to cb-prefixed"))
