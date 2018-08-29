@@ -394,10 +394,9 @@
 (define-instruction ei #x1 (cpu opcode)
   (setf (interrupts-enabled? cpu) t))
 
-(define-instruction ed-prefix #x2 (cpu opcode)
-  (let* ((ed-opcode (fetch-byte-from-ram cpu))
-         (ed-instruction (elt ed-instruction-table ed-opcode)))
-    (funcall (microcode ed-instruction) cpu ed-opcode)))
+(define-instruction ed-prefix #x0 (cpu opcode)
+  (incf (reg-pc cpu))
+  (execute-next-instruction cpu ed-prefix-table))
 
 (define-instruction ed-undefined #x1 (cpu opcode))
 

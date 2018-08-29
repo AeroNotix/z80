@@ -176,15 +176,17 @@
 (defmethod flag-h ((cpu cpu))
   (logbitp h-flag-pos (reg-f cpu)))
 
-(defmethod execute-next-instruction ((cpu cpu))
+(defgeneric execute-next-instruction (cpu &optional instruction-table))
+
+(defmethod execute-next-instruction ((cpu cpu) &optional (instruction-table unprefixed-table))
   (let* ((opcode (elt (ram cpu) (pc cpu)))
-         (next-instruction (elt instruction-table opcode))
+         (next-instruction (next-instruction instruction-table opcode))
          (orig-pc (pc cpu)))
     (when logging-enabled
       (debug-cpu cpu))
     (funcall (microcode next-instruction) cpu opcode)
     (when (eq orig-pc (pc cpu))
-      (incf (pc cpu) (size next-instruction)))))
+      (incf (pc cpu) (instruction-size instruction-table next-instruction)))))
 
 (defun emulate-rom (cpu rom-path &key (starting-pc 0) (max-instructions single-float-positive-infinity))
   (load-ram-from-rom-file cpu rom-path)
