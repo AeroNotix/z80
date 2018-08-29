@@ -1,6 +1,6 @@
 (in-package :z80)
 
-(defparameter logging-enabled t)
+(defparameter logging-enabled nil)
 
 (defparameter s-flag-pos 7)
 (defparameter z-flag-pos 6)
