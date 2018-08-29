@@ -10,6 +10,10 @@
    ;; ports that will be written to/read from when the IN/OUT
    ;; instructions are executed.
    (peripherals :initform nil :accessor peripherals :initarg :peripherals)
+   ;; R: contains the DRAM refresh count.
+   (r :initform 0 :accessor reg-r)
+   ;; I: the IV register
+   (i :initform 0 :accessor reg-i)
    ;; AF: 8-bit accumulator (A) and flag bits (F) carry, zero, minus,
    ;;     parity/overflow, half-carry (used for BCD), and an
    ;;     Add/Subtract flag (usually called N) also for BCD
@@ -106,8 +110,8 @@
   (logior (logand #xFFFF (elt (ram cpu) address))
           (logand #xFFFF (ash (elt (ram cpu) (1+ address)) 8))))
 
-(defmethod fetch-word-from-ram ((cpu cpu))
-  (read-word cpu :address (1+ (pc cpu))))
+(defmethod fetch-word-from-ram ((cpu cpu) &key (address (1+ (pc cpu))))
+  (read-word-from-ram cpu :address address))
 
 (defmethod write-word-to-ram ((cpu cpu) address value)
   (setf (elt (ram cpu) address) (rshift value 8))

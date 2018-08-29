@@ -31,3 +31,10 @@
 
 (defun 8-bit-parity (x)
   (if (evenp (logcount x)) 1 0))
+
+(defun ~ (x)
+  (1- (- 0 x)))
+
+(defun twos-complement (x &optional (bit-count 8))
+  (let ((mask (expt 2 (1- bit-count))))
+    (+ (- 0 (logand x mask) (logand x (~ mask))))))

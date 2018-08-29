@@ -10,7 +10,6 @@
   (format out "<INSTRUCTION {~A}>" (name int)))
 
 (defmacro define-instruction (name size args &body body)
-
   `(let* ((inst (make-instance 'instruction
                                :name ',name
                                :size ,size
@@ -213,7 +212,13 @@
     (setf (reg-f cpu) next-flags)))
 
 (define-instruction daa #x1 (cpu opcode)
-  (error "Not implemented (daa): adjust register a for BCD"))
+  (let ((upper-tetrade (logand (reg-a cpu) #xF0))
+        (lower-tetrade (logand (reg-a cpu) #x0F))
+        (next-a (reg-a cpu)))
+    (when (or (> upper-tetrade #x90) (flag-c cpu))
+      (incf next-a #x60))
+    (when (or (> lower-tetrade #x09) (flag-h cpu))
+      (incf next-a #x06))))
 
 (define-instruction rra #x1 (cpu opcode)
   (error "Not implemented (rra): rotate a right, copy flags accordingly"))
@@ -386,13 +391,181 @@
   (setf (interrupts-enabled? cpu) t))
 
 (define-instruction ed-prefix #x2 (cpu opcode)
-  )
+  (let* ((ed-opcode (fetch-byte-from-ram cpu))
+         (ed-instruction (elt ed-instruction-table ed-opcode)))
+    (funcall (microcode ed-instruction) cpu ed-opcode)))
+
+(define-instruction ed-undefined #x1 (cpu opcode))
+
+(define-instruction in-r-c #x2 (cpu opcode)
+  (let ((y (find-8-bit-register (opcode-y cpu))))
+    (ld cpu y #'port-c)))
+
+(define-instruction out-c-r #x2 (cpu opcode)
+  (let ((y (find-8-bit-register (opcode-y opcode))))
+    (ld cpu #'port-c y)))
+
+(define-instruction sbc-hl-rr #x2 (cpu opcode)
+  (let ((p (find-16-bit-register (opcode-p opcode))))
+    (dec cpu #'reg-hl (+ (funcall p cpu) (flag-c cpu)))))
+
+(define-instruction ld-indirect-nn-rr #x4 (cpu opcode)
+  (let ((p (find-16-bit-register (opcode-p opcode)))
+        (address-to-write-to (fetch-word-from-ram cpu)))
+    (write-word-to-ram cpu address-to-write-to (funcall p cpu))))
+
+(define-instruction neg #x2 (cpu opcode)
+  (setf (reg-a cpu) (twos-complement (reg-a cpu))))
+
+(define-instruction reti-retn #x2 (cpu opcode)
+  (warn "reti-retn is supposed to also set IFF1 to IFF2, we don't implement either of those yet")
+  (pop-to cpu #'reg-pc))
+
+(define-instruction im-n #x2 (cpu opcode)
+  (setf (interrupts-enabled? cpu) (= 1 (fetch-byte-from-ram cpu))))
+
+(define-instruction ld-i-a-ld-r-a #x2 (cpu opcode)
+  (warn "ld-i-a-ld-r-a may not be implemented correctly")
+  (case (opcode-y opcode)
+    (0 (ld cpu #'reg-i #'reg-a))
+    (1 (ld cpu #'reg-r #'reg-a))
+    (2 (ld cpu #'reg-a #'reg-i))
+    (3 (ld cpu #'reg-a #'reg-r))))
+
+(define-instruction ld-a-i-ld-a-r #x2 (cpu opcode)
+  (warn "ld-a-i-ld-a-r may not be implemented correctly")
+  (case (opcode-y opcode)
+    (0 (ld cpu #'reg-i #'reg-a))
+    (1 (ld cpu #'reg-r #'reg-a))
+    (2 (ld cpu #'reg-a #'reg-i))
+    (3 (ld cpu #'reg-a #'reg-r))))
+
+(define-instruction adc-hl-rr #x2 (cpu opcode)
+  (let ((p (find-16-bit-register (opcode-p opcode))))
+    (inc cpu #'reg-hl (+ (funcall p cpu) (flag-c cpu)))))
+
+(define-instruction ld-rr-indirect-nn #x4 (cpu opcode)
+  (let ((p (find-16-bit-register (opcode-p opcode)))
+        ;; two bytes for the actual opcode, then the address
+        (address (read-word-from-ram cpu :address (+ 2 (pc cpu)))))
+    (warn "ld-rr-indirect-nn will need some optimization, loading from a closure")
+    (ld cpu p (lambda (cpu) (read-byte-from-ram cpu :address address)))))
+
+(define-instruction rld-rrd #x2 (cpu opcode)
+  (let ((a-upper-tetrade (logand #xFF00 (reg-a cpu)))
+        (a-lower-tetrade (logand #x00FF (reg-a cpu)))
+        (mem-hl-upper-tetrade (logand #xFF00 (mem-hl cpu)))
+        (mem-hl-lower-tetrade (logand #x00FF (mem-hl cpu))))
+    ;; define this
+    (when (= opcode #x6F)
+      (setf (reg-a cpu) (logand mem-hl-upper-tetrade a-upper-tetrade))
+      (setf (mem-hl (logand (ash mem-hl-lower-tetrade 8) a-lower-tetrade))))
+    (when (= opcode #x67)
+      (setf (reg-a cpu) (logand a-upper-tetrade mem-hl-lower-tetrade))
+      (setf (mem-hl (logand (ash a-lower-tetrade 8) (rshift mem-hl-upper-tetrade 8)))))))
+
+#|
+
+Block instructions are all supposed to decrement PC by two if their
+conditions are not met. We don't implement this feature because, in
+reality it's a bit of a hack in the Z80 hardware.
+
+The opcode is two bytes long and by decrementing the PC by two
+effectively these instructions trigger a jr-2 instruction.
+
+For us, it's more efficient to just loop through until the counters
+reach zero.
+
+|#
+
+(defmethod block-transfer-instruction ((cpu cpu) op)
+  (setf (mem-be cpu) (mem-hl cpu))
+  (setf (reg-hl cpu) (funcall op (reg-hl cpu)))
+  (setf (reg-de cpu) (funcall op (reg-de cpu)))
+  (decf (reg-bc cpu)))
+
+(define-instruction ldd #x2 (cpu opcode)
+  (block-transfer-instruction cpu #'1-))
+
+(define-instruction lddr #x2 (cpu opcode)
+  (while (plusp (reg-bc cpu))
+    (funcall (microcode ldd) cpu)))
+
+(define-instruction ldi #x2 (cpu opcode)
+  (block-transfer-instruction cpu #'1+))
+
+(define-instruction ldir #x2 (cpu opcode)
+  (while (plusp (reg-bc cpu))
+    (funcall (microcode ldi) cpu)))
+
+(defmethod block-compare-instruction ((cpu cpu) op)
+  (let* ((result (- (reg-a cpu) (mem-hl cpu))))
+    (setf (reg-f cpu) (calculate-flags result))
+    (setf (reg-hl cpu) (funcall op (reg-hl cpu)))
+    (setf (reg-bc cpu) (funcall op (reg-bc cpu)))))
+
+(define-instruction cpi #x2 (cpu opcode)
+  (block-compare-instruction cpu #'1+))
+
+(define-instruction cpir #x2 (cpu opcode)
+  (while (and (/= (reg-a cpu) (mem-hl cpu))
+              (plusp (reg-bc cpu)))
+    (block-compare-instruction cpu #'1+)))
+
+(define-instruction cpd #x2 (cpu opcode)
+  (block-compare-instruction cpu #'1-))
+
+(define-instruction cpdr #x2 (cpu opcode)
+  (while (and (/= (reg-a cpu) (mem-hl cpu))
+              (plusp (reg-bc cpu)))
+    (block-compare-instruction cpu #'1-)))
+
+(defun block-input-instruction (cpu op)
+  (setf (mem-hl cpu) (read-port cpu (reg-c cpu)))
+  (decf (reg-b cpu))
+  (setf (reg-hl cpu) (funcall op (reg-hl cpu))))
+
+(define-instruction ini #x2 (cpu opcode)
+  (block-input-instruction cpu #'1+))
+
+(define-instruction ind #x2 (cpu opcode)
+  (block-input-instruction cpu #'1-))
+
+(define-instruction inir #x2 (cpu opcode)
+  (while (plusp (reg-b cpu))
+    (block-input-instruction cpu #'1+)))
+
+(define-instruction indr #x2 (cpu opcode)
+  (while (plusp (reg-b cpu))
+    (block-input-instruction cpu #'1-)))
+
+(defun block-output-instruction (cpu op)
+  (setf (port-c cpu) (mem-hl cpu))
+  (decf (reg-b cpu))
+  (setf (reg-hl cpu) (funcall op (reg-hl cpu))))
+
+(define-instruction outi #x2 (cpu opcode)
+  (block-output-instruction cpu #'1+))
+
+(define-instruction outd #x2 (cpu opcode)
+  (block-output-instruction cpu #'1-))
+
+(define-instruction otir #x2 (cpu opcode)
+  (while (plusp (reg-b cpu))
+    (block-output-instruction cpu #'1+)))
+
+(define-instruction otdr #x2 (cpu opcode)
+  (while (plusp (reg-b cpu))
+    (block-output-instruction cpu #'1-)))
+
+(define-instruction cpd #x2 (cpu opcode)
+
 
 (define-instruction cb-prefix #x2 (cpu opcode)
-  )
+  (error "Not implemented: cb-prefixes, switch the instruction table to cb-prefixed"))
 
 (define-instruction dd-prefix #x2 (cpu opcode)
-  )
+  (error "Not implemented: dd-prefixes, switch the instruction table to dd-prefixed"))
 
 (define-instruction fd-prefix #x2 (cpu opcode)
-  )
+  (error "Not implemented: fd-prefixes, switch the instruction table to fd-prefixed"))
