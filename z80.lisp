@@ -195,7 +195,8 @@
 (defun emulate (cpu &key (starting-pc 0) (max-instructions single-float-positive-infinity))
   (setf (pc cpu) starting-pc)
   (let ((num-instructions 0))
-    (loop do
+    (loop
+       do
          (execute-next-instruction cpu)
          (incf num-instructions)
        while (and (not (>= num-instructions max-instructions))
