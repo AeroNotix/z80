@@ -13,12 +13,7 @@
   (format t "~{~B~^ ~}~%" ints))
 
 (defmethod debug-cpu ((cpu cpu))
-  (let ((next-instruction (elt (ram cpu) (slot-value cpu 'pc))))
-    (format t "NEXT INSTRUCTION : ~X / ~A / PC: ~D~%"
-            next-instruction (name (elt instruction-table next-instruction)) (pc cpu))
-    (dump-flags cpu)
-    ;; (format t "RAM: ~A~%" (ram cpu))
-    ))
+  (dump-flags cpu))
 
 (defun dump-registers-to-values (cpu)
   (values (reg-a cpu)
