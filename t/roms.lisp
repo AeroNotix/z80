@@ -47,8 +47,8 @@
                                         (list "jnz-flag.rom" #'z80::reg-a 255)
                                         (list "jc-flag.rom" #'z80::reg-a 66)
                                         (list "load-indirect.rom" #'z80::reg-a 123)
-                                   (list "cp-nz-test.rom" #'z80::reg-a 255)
-                                   (list "cp-z-test.rom" #'z80::reg-a 255))))
+                                        (list "cp-nz-test.rom" #'z80::reg-a 255)
+                                        (list "cp-z-test.rom" #'z80::reg-a 255))))
     (mapcar (lambda (args) (apply #'test-register-assertion-rom args)) roms-and-expected-values)))
 
 (def-test expected-io-roms (:suite roms)
