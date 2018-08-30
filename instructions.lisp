@@ -628,14 +628,14 @@ function which knows which direction to go in.
         (z-lsb (logand z-value #x1))
         (c (flag-c cpu)))
     (funcall (setf-of z) (logior (rshift z-value 1) (ash c-flag 7)) cpu)
-    (setf (logior (reg-f cpu) z-lsb))))
+    (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
 
 (define-instruction rr-indirect-hl #x2 (cpu opcode)
   (let ((z-value (mem-hl cpu))
         (z-lsb (logand z-value #x1))
         (c (flag-c cpu)))
     (setf (mem-hl cpu) (logior (rshift z-value 1) (ash c-flag 7)))
-    (setf (logior (reg-f cpu) z-lsb))))
+    (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
 
 (define-instruction sla-r #x2 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode)))
