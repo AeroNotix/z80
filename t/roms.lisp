@@ -36,7 +36,7 @@
 (defun test-ram-assertion-rom (rom-filename expected-value start end)
   (let ((rom (get-rom rom-filename))
         (cpu (make-instance 'z80:cpu)))
-    (is (equalp (subseq  (z80::ram (z80:emulate-rom cpu rom)) start end) expected-value))))
+    (is (equalp (subseq (z80::ram (z80:emulate-rom cpu rom)) start end) expected-value))))
 
 (defun apply-tests (asserter args)
   (handler-bind ((warning (lambda (w) (declare (ignore w)) (muffle-warning))))
