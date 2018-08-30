@@ -15,14 +15,10 @@
    (current-instruction-le :accessor current-instruction-le)
    (sp-register-le :accessor sp-register-le)
    (pc-register-le :accessor pc-register-le)
-   (a-register-le :accessor a-register-le)
-   (b-register-le :accessor b-register-le)
-   (c-register-le :accessor c-register-le)
-   (d-register-le :accessor d-register-le)
-   (e-register-le :accessor e-register-le)
-   (h-register-le :accessor h-register-le)
-   (l-register-le :accessor h-register-le)
-   (f-register-le :accessor f-register-le)
+   (af-register-le :accessor a-register-le)
+   (bc-register-le :accessor b-register-le)
+   (de-register-le :accessor d-register-le)
+   (hl-register-le :accessor h-register-le)
    (halted-cb :accessor halted-cb)
    (s-flag-cb :accessor s-flag-cb)
    (z-flag-cb :accessor z-flag-cb)
@@ -43,32 +39,34 @@
  `(#_setChecked ,ui-element (funcall ,cpu-slot ,cpu)))
 
 (defmethod cpu-state-to-ui ((instance main-window) (cpu z80::cpu))
-  (with-slots (a-register-le b-register-le c-register-le d-register-le
-                             e-register-le h-register-le l-register-le
-                             f-register-le pc-register-le halted-cb
-                             sp-register-le s-flag-cb z-flag-cb
-                             f5-flag-cb h-flag-cb f3-flag-cb p-flag-cb
-                             n-flag-cb c-flag-cb current-instruction-le) instance
-    (#_setText sp-register-le (format nil "0x~X" (z80::sp (cpu instance))))
-    (#_setText pc-register-le (format nil "0x~X" (z80::pc (cpu instance))))
+  (with-slots (af-register-le
+               bc-register-le
+               de-register-le
+               hl-register-le
+               pc-register-le
+               sp-register-le
+               halted-cb
+               s-flag-cb
+               z-flag-cb
+               f5-flag-cb
+               h-flag-cb
+               f3-flag-cb
+               p-flag-cb
+               n-flag-cb
+               c-flag-cb
+               current-instruction-le) instance
     (cpu-flag-to-ui c-flag-cb #'z80::flag-c cpu)
     (cpu-flag-to-ui halted-cb #'z80::halted? cpu)
     (cpu-flag-to-ui s-flag-cb #'z80::flag-s cpu)
     (cpu-flag-to-ui z-flag-cb #'z80::flag-z cpu)
     (cpu-flag-to-ui p-flag-cb #'z80::flag-p cpu)
     (cpu-flag-to-ui h-flag-cb #'z80::flag-h cpu)
-    (let ((current-instruction (elt (z80::ram cpu) (z80::pc cpu))))
-      (#_setText current-instruction-le
-                 (format nil "0x~X | ~A" current-instruction (z80::name (elt z80::instruction-table current-instruction)))))
-    (multiple-value-bind (a-reg b-reg c-reg d-reg e-reg h-reg l-reg f-reg) (z80::dump-registers-to-values cpu)
-      (#_setText a-register-le (format nil "0x~X" a-reg))
-      (#_setText b-register-le (format nil "0x~X" b-reg))
-      (#_setText c-register-le (format nil "0x~X" c-reg))
-      (#_setText d-register-le (format nil "0x~X" d-reg))
-      (#_setText e-register-le (format nil "0x~X" e-reg))
-      (#_setText f-register-le (format nil "0x~X" f-reg))
-      (#_setText h-register-le (format nil "0x~X" h-reg))
-      (#_setText l-register-le (format nil "0x~X" l-reg)))))
+    (#_display pc-register-le (z80::reg-pc cpu))
+    (#_display sp-register-le (z80::reg-sp cpu))
+    (#_display af-register-le (z80::reg-af cpu))
+    (#_display bc-register-le (z80::reg-bc cpu))
+    (#_display de-register-le (z80::reg-de cpu))
+    (#_display hl-register-le (z80::reg-hl cpu))))
 
 (defmethod run-emulator ((instance main-window))
   ;; TODO: make the emulator run asynchronously
@@ -121,14 +119,11 @@
 
                      current-instruction-le
 
-                     a-register-le
-                     b-register-le
+                     af-register-le
+                     bc-register-le
                      c-register-le
-                     d-register-le
-                     e-register-le
-                     h-register-le
-                     f-register-le
-                     l-register-le
+                     de-register-le
+                     hl-register-le
                      sp-register-le
                      pc-register-le
 
@@ -146,16 +141,12 @@
                 run-btn (find-child window "btn_Run")
                 step-btn (find-child window "btn_Step")
 
-                a-register-le (find-child window "le_A_Reg")
-                b-register-le (find-child window "le_B_Reg")
-                c-register-le (find-child window "le_C_Reg")
-                d-register-le (find-child window "le_D_Reg")
-                e-register-le (find-child window "le_E_Reg")
-                h-register-le (find-child window "le_H_Reg")
-                l-register-le (find-child window "le_L_Reg")
-                f-register-le (find-child window "le_F_Reg")
-                sp-register-le (find-child window "le_SP_Reg")
-                pc-register-le (find-child window "le_PC_Reg")
+                af-register-le (find-child window "AF_Reg")
+                bc-register-le (find-child window "BC_Reg")
+                de-register-le (find-child window "DE_Reg")
+                hl-register-le (find-child window "HL_Reg")
+                sp-register-le (find-child window "SP_Reg")
+                pc-register-le (find-child window "PC_Reg")
 
                 halted-cb (find-child window "cb_halted")
 
