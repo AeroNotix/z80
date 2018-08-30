@@ -356,6 +356,301 @@
                                    ed-undefined ed-undefined ed-undefined ed-undefined ed-undefined ed-undefined
                                    ed-undefined ed-undefined))))
 
+(defparameter cb-prefix-table
+  (make-instance 'instruction-table
+                 :prefixed-p t
+                 :instructions
+                 (make-array 256 :initial-contents
+                             (list
+
+	                          rlc-r
+	                          rlc-r
+	                          rlc-r
+	                          rlc-r
+	                          rlc-r
+	                          rlc-r
+	                          rlc-indirect-hl
+	                          rlc-r
+
+	                          rrc-r
+	                          rrc-r
+	                          rrc-r
+	                          rrc-r
+	                          rrc-r
+	                          rrc-r
+	                          rrc-indirect-hl
+	                          rrc-r
+
+	                          rl-r
+	                          rl-r
+	                          rl-r
+	                          rl-r
+	                          rl-r
+	                          rl-r
+	                          rl-indirect-hl
+	                          rl-r
+
+	                          rr-r
+	                          rr-r
+	                          rr-r
+	                          rr-r
+	                          rr-r
+	                          rr-r
+	                          rr-indirect-hl
+	                          rr-r
+
+	                          sla-r
+	                          sla-r
+	                          sla-r
+	                          sla-r
+	                          sla-r
+	                          sla-r
+	                          sla-indirect-hl
+	                          sla-r
+
+	                          sra-r
+	                          sra-r
+	                          sra-r
+	                          sra-r
+	                          sra-r
+	                          sra-r
+	                          sra-indirect-hl
+	                          sra-r
+
+	                          sll-r
+	                          sll-r
+	                          sll-r
+	                          sll-r
+	                          sll-r
+	                          sll-r
+	                          sll-indirect-hl
+	                          sll-r
+
+	                          srl-r
+	                          srl-r
+	                          srl-r
+	                          srl-r
+	                          srl-r
+	                          srl-r
+	                          srl-indirect-hl
+	                          srl-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-r
+	                          bit-b-indirect-hl
+	                          bit-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
+	                          res-b-indirect-hl
+	                          res-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r
+
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-r
+	                          set-b-indirect-hl
+	                          set-b-r))))
+
 (defparameter condition-table
   (list #'flag-nz #'flag-z #'flag-nc #'flag-c
         #'flag-po #'flag-pe #'flag-p #'flag-m))

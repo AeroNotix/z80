@@ -38,3 +38,9 @@
 (defun twos-complement (x &optional (bit-count 8))
   (let ((mask (expt 2 (1- bit-count))))
     (+ (- 0 (logand x mask) (logand x (~ mask))))))
+
+(defun reset-bit-at (integer position)
+  (logand integer (lognot (ash 1 position))))
+
+(defun set-bit-at (integer position)
+  (logior integer (ash 1 position)))

@@ -20,15 +20,6 @@
                                    :microcode #',microcode-fn-name)))
          (defparameter ,name inst)))))
 
-(defmacro setf-of (place)
-  `(fdefinition `(setf ,,place)))
-
-(defmacro incf-of (place)
-  `(fdefinition `(incf ,,place)))
-
-(defmacro decf-of (place)
-  `(fdefinition `(decf ,,place)))
-
 ;; From: http://www.z80.info/decoding.htm
 
 ;; Essentially:
@@ -394,6 +385,8 @@
 (define-instruction ei #x1 (cpu opcode)
   (setf (interrupts-enabled? cpu) t))
 
+;; ED Prefixed opcodes
+
 (define-instruction ed-prefix #x0 (cpu opcode)
   (incf (reg-pc cpu))
   (execute-next-instruction cpu ed-prefix-table))
@@ -564,8 +557,171 @@ reach zero.
 (define-instruction cpd #x2 (cpu opcode)
   )
 
+;; CB Prefixed opcodes
+
 (define-instruction cb-prefix #x2 (cpu opcode)
   (error "Not implemented: cb-prefixes, switch the instruction table to cb-prefixed"))
+
+#|
+
+All rotation instructions likely can be refactored to a single
+function which knows which direction to go in.
+
+|#
+
+(define-instruction rlc-r #x2 (cpu opcode)
+  (let* ((z (find-8-bit-register (opcode-z opcode)))
+         (z-value (funcall z cpu))
+         (next-flags (calculate-flags z-value))
+         ;; put #x80 in a define
+         (z-msb (rshift (logand z-value #x80) 7)))
+    (funcall (setf-of z) (logior (ash z-value 1) z-msb) cpu)
+    ;; logior next-flags z-msb might be wrong. We might need to set
+    ;; the c-flag to the z-msb no matter what
+    (setf (reg-f cpu) (logior next-flags z-msb))))
+
+;; TODO: Combine with rlc-r
+(define-instruction rlc-indirect-hl #x2 (cpu opcode)
+  (let* ((z-value (mem-hl cpu))
+         (next-flags (calculate-flags z-value))
+         ;; put #x80 in a define
+         (z-msb (rshift (logand z-value #x80) 7)))
+    (setf (mem-hl cpu) (logior (ash z-value 1) z-msb))
+    ;; logior next-flags z-msb might be wrong. We might need to set
+    ;; the c-flag to the z-msb no matter what
+    (setf (reg-f cpu) (logior next-flags z-msb))))
+
+(define-instruction rrc-r #x2 (cpu opcode)
+  (let* ((z (find-8-bit-register (opcode-z opcode)))
+         (z-value (funcall z cpu))
+         (next-flags (calculate-flags z-value))
+         (z-lsb (logand z-value #x1)))
+    (funcall (setf-of z) (logior (rshift z-value 1) z-lsb) cpu)
+    (setf (reg-f cpu) (logior next-flags z-lsb))))
+
+(define-instruction rrc-indirect-hl #x2 (cpu opcode)
+  (let* ((z (mem-hl cpu))
+         (z-value (funcall z cpu))
+         (next-flags (calculate-flags z-value))
+         (z-lsb (ash (logand z-value #x1) 7)))
+    (setf (mem-hl cpu) (logior (rshift z-value 1) z-lsb))
+    (setf (reg-f cpu) (logior next-flags z-lsb))))
+
+(define-instruction rl-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (z-msb (rshift (logand z-value #x80) 7))
+        (c (flag-c cpu)))
+    (funcall (setf-of z) (logand (ash z-value 1) c))
+    (setf (reg-f cpu) (logand z-msb (reg-f cpu)))))
+
+(define-instruction rl-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (z-msb (rshift (logand z-value #x80) 7))
+        (c (flag-c cpu)))
+    (setf (mem-hl cpu) (logand (ash z-value 1) c))
+    (setf (reg-f cpu) (logand z-msb (reg-f cpu)))))
+
+(define-instruction rr-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (z-lsb (logand z-value #x1))
+        (c (flag-c cpu)))
+    (funcall (setf-of z) (logior (rshift z-value 1) (ash c-flag 7)) cpu)
+    (setf (logior (reg-f cpu) z-lsb))))
+
+(define-instruction rr-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (z-lsb (logand z-value #x1))
+        (c (flag-c cpu)))
+    (setf (mem-hl cpu) (logior (rshift z-value 1) (ash c-flag 7)))
+    (setf (logior (reg-f cpu) z-lsb))))
+
+(define-instruction sla-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (z-msb (rshift (logand z-value #x80) 7)))
+    (funcall (setf-of z) (ash z-value 1) cpu)
+    (setf (reg-f cpu) (logior (reg-f cpu) z-msb))))
+
+(define-instruction sla-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (z-msb (rshift (logand z-value #x80) 7)))
+    (setf (mem-hl cpu) (ash z-value 1))
+    (setf (reg-f cpu) (logior (reg-f cpu) z-msb))))
+
+(define-instruction sra-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu)))
+    (funcall (setf-of z) (rshift (funcall z cpu) 1) cpu)
+    (setf (reg-f cpu) (logior (reg-f cpu) (logand #x1 z-value)))))
+
+(define-instruction sra-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu)))
+    (setf (mem-hl cpu) (rshift z-value 1))
+    (setf (reg-f cpu) (logior (reg-f cpu) (logand #x1 z-value)))))
+
+(define-instruction sll-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (z-msb (rshift (logand z-value #x80) 7)))
+    (funcall (setf-of z) (logior (ash z-value 1) #x1))
+    (setf (reg-f cpu) (logior (reg-f cpu) #x1))))
+
+(define-instruction sll-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (z-msb (rshift (logand z-value #x80) 7)))
+    (setf (mem-hl cpu) (logior (ash z-value 1) #x1))
+    (setf (reg-f cpu) (logior (reg-f cpu) #x1))))
+
+(define-instruction srl-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (z-lsb (logand z-value #x1)))
+    (funcall (setf-of z) (logior (rshift z-value 1) (ash #x1 7)))
+    (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
+
+(define-instruction srl-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (z-lsb (logand z-value #x1)))
+    (setf (mem-hl cpu) (logior (rshift z-value 1) (ash #x1 7)))
+    (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
+
+(defun bit-test-flags (value position)
+  (logior h-mask (if (logbitp position value) z-mask 0)))
+
+(define-instruction bit-b-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (y (opcode-y opcode)))
+    (setf (reg-f cpu) (bit-test-flags z-value y))))
+
+(define-instruction bit-b-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (y (opcode-y opcode)))
+    (setf (reg-f cpu) (bit-test-flags z-value y))))
+
+(define-instruction res-b-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (y (opcode-y opcode)))
+    (funcall (setf-of z) (reset-bit-at z-value y))))
+
+(define-instruction res-b-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (y (opcode-y opcode)))
+    (setf (mem-hl cpu) (reset-bit-at z-value y))))
+
+(define-instruction set-b-r #x2 (cpu opcode)
+  (let ((z (find-8-bit-register (opcode-z opcode)))
+        (z-value (funcall z cpu))
+        (y (opcode-y opcode)))
+    (funcall (setf-of z) (set-bit-at z-value y))))
+
+(define-instruction set-b-indirect-hl #x2 (cpu opcode)
+  (let ((z-value (mem-hl cpu))
+        (y (opcode-y opcode)))
+    (setf (mem-hl cpu) (set-bit-at z-value y))))
 
 (define-instruction dd-prefix #x2 (cpu opcode)
   (error "Not implemented: dd-prefixes, switch the instruction table to dd-prefixed"))
