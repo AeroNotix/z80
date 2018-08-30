@@ -100,16 +100,21 @@
          (loop for child in children
             thereis (find-child child name)))))
 
-(defun ui-resource-location ()
+(defun ui-resource-location (filename)
   (namestring
    (cl-fad:merge-pathnames-as-file
-    (asdf:system-source-directory :z80/ui) #P"ui/" #P"main.ui")))
+    (asdf:system-source-directory :z80/ui) #P"ui/" filename)))
+
+(defun set-style-sheet (widget file)
+  (with-objects ((file (#_new QFile (ui-resource-location file))))
+    (when (#_open file 1)
+      (#_setStyleSheet widget (#_data (#_readAll file))))))
 
 ;;;; TODO: macro the everliving fuck out of this or get around to
 ;;;; implementing https://github.com/AeroNotix/cluic
 (defmethod initialize-instance :after ((instance main-window) &key)
   (new instance)
-  (with-objects ((file (#_new QFile (ui-resource-location)))
+  (with-objects ((file (#_new QFile (ui-resource-location #P"main.ui")))
                  (loader (#_new QUiLoader)))
     (when (#_open file 1)
       (let ((window (#_load loader file instance)))
@@ -160,6 +165,7 @@
                 c-flag-cb (find-child window "cb_C_flag")
 
                 open-file-action (find-child window "actionLoad_Rom"))
+          (set-style-sheet instance #P"qlcdnumber.qss")
           (connect open-file-action "triggered()" instance "open_file_dialog()")
           (connect run-btn "clicked()" instance "run_emulator()")
           (connect step-btn "clicked()" instance "single_step_emulator()")
