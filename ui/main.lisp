@@ -75,7 +75,7 @@
      do (progn
           (step-emulator instance)
           (#_processEvents qt:*qapplication*))
-     while t))
+     while (not (z80::halted? (cpu instance)))))
 
 (defmethod step-emulator ((instance main-window))
   (z80::execute-next-instruction (cpu instance))
