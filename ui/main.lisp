@@ -31,9 +31,11 @@
    (open-file-action :accessor open-file-action))
   (:metaclass qt-class)
   (:qt-superclass "QMainWindow")
-  (:slots ("single_step_emulator()" step-emulator)
-          ("run_emulator()" run-emulator)
-          ("open_file_dialog()" open-file-dialog)))
+  (:slots
+   ("halted_state_changed(int)" halted-state-changed)
+   ("single_step_emulator()" step-emulator)
+   ("run_emulator()" run-emulator)
+   ("open_file_dialog()" open-file-dialog)))
 
 (defmacro cpu-flag-to-ui (ui-element cpu-slot cpu)
  `(#_setChecked ,ui-element (funcall ,cpu-slot ,cpu)))
@@ -56,7 +58,9 @@
                c-flag-cb
                current-instruction-le) instance
     (cpu-flag-to-ui c-flag-cb #'z80::flag-c cpu)
+    (#_blockSignals halted-cb t)
     (cpu-flag-to-ui halted-cb #'z80::halted? cpu)
+    (#_blockSignals halted-cb nil)
     (cpu-flag-to-ui s-flag-cb #'z80::flag-s cpu)
     (cpu-flag-to-ui z-flag-cb #'z80::flag-z cpu)
     (cpu-flag-to-ui p-flag-cb #'z80::flag-p cpu)
@@ -76,6 +80,9 @@
           (step-emulator instance)
           (#_processEvents qt:*qapplication*))
      while (not (z80::halted? (cpu instance)))))
+
+(defmethod halted-state-changed ((instance main-window) state)
+  (setf (z80::halted? (cpu instance)) (eq state 2)))
 
 (defmethod step-emulator ((instance main-window))
   (z80::execute-next-instruction (cpu instance))
@@ -166,6 +173,7 @@
 
                 open-file-action (find-child window "actionLoad_Rom"))
           (set-style-sheet instance #P"qlcdnumber.qss")
+          (connect halted-cb "stateChanged(int)" instance "halted_state_changed(int)")
           (connect open-file-action "triggered()" instance "open_file_dialog()")
           (connect run-btn "clicked()" instance "run_emulator()")
           (connect step-btn "clicked()" instance "single_step_emulator()")
