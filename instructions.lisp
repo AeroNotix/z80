@@ -112,9 +112,9 @@
 
 ;; 8-bit register loading LD, r[y], r[z]
 (define-instruction ld-r-r #x1 (cpu opcode)
-    (let ((y (find-8-bit-register (opcode-y opcode)))
-          (z (find-8-bit-register (opcode-z opcode))))
-      (ld cpu y z)))
+  (let ((y (find-8-bit-register (opcode-y opcode)))
+        (z (find-8-bit-register (opcode-z opcode))))
+    (ld cpu y z)))
 
 ;; 8-bit load immediate LD, r[y], n
 (define-instruction ld-r-n #x2 (cpu opcode)
