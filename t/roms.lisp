@@ -57,7 +57,8 @@
                                         (list "jc-flag.rom" #'z80::reg-a 66)
                                         (list "load-indirect.rom" #'z80::reg-a 123)
                                         (list "cp-nz-test.rom" #'z80::reg-a 255)
-                                        (list "cp-z-test.rom" #'z80::reg-a 255))))
+                                        (list "cp-z-test.rom" #'z80::reg-a 255)
+                                        (list "res-set.rom" #'z80::reg-a 170))))
     (apply-tests #'test-register-assertion-rom roms-and-expected-values)))
 
 (def-test expected-io-roms (:suite roms)
