@@ -181,6 +181,11 @@
 (defmethod flag-h ((cpu cpu))
   (logbitp h-flag-pos (reg-f cpu)))
 
+(defmethod reset-cpu ((cpu cpu))
+  (setf (slot-value cpu 'r) #x00)
+  (setf (slot-value cpu 'i) #x00)
+  (setf (reg-pc cpu) #x0000))
+
 (defgeneric execute-next-instruction (cpu &optional instruction-table))
 
 (defmethod execute-next-instruction ((cpu cpu) &optional (instruction-table unprefixed-table))

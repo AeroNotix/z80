@@ -93,10 +93,10 @@
         (filename (#_QFileDialog::getOpenFileName
                    instance
                    "Select ROM" "" "Z80 ROM (*.rom *.z80);;All Files(*)")))
-    (z80::load-ram-from-rom-file cpu filename)
-    (setf (z80::pc cpu) 0)
-    (setf (z80::halted? cpu) nil)
-    (cpu-state-to-ui instance cpu)))
+    (when (not (string= filename ""))
+      (z80::load-ram-from-rom-file cpu filename)
+      (z80::reset-cpu cpu)
+      (cpu-state-to-ui instance cpu))))
 
 (defun find-child (object name)
  (let ((children (#_children object)))
