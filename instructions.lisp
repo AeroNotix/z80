@@ -561,7 +561,8 @@ reach zero.
 ;; CB Prefixed opcodes
 
 (define-instruction cb-prefix #x2 (cpu opcode)
-  (error "Not implemented: cb-prefixes, switch the instruction table to cb-prefixed"))
+  (incf (reg-pc cpu))
+  (execute-next-instruction cpu cb-prefix-table))
 
 #|
 
