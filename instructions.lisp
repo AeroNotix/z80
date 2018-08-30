@@ -1,5 +1,6 @@
 (in-package :z80)
 
+
 (defclass instruction ()
   ((name :initarg :name :accessor name)
    (size :initarg :size :accessor size)
