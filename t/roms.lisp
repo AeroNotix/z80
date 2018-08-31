@@ -62,7 +62,8 @@
     (apply-tests #'test-register-assertion-rom roms-and-expected-values)))
 
 (def-test expected-io-roms (:suite roms)
-  (let ((roms-and-expected-output (list (list "peripheral-test.rom" (format nil "THISISATEST~C~C" #\Newline #\Return) #x0100))))
+  (let ((roms-and-expected-output (list (list "peripheral-test.rom" (format nil "THISISATEST~C~C" #\Newline #\Return) #x0100)
+                                        (list "brainfuck.rom" "Hello, world!" #x0))))
     (apply-tests #'test-io-assertion-rom roms-and-expected-output)))
 
 (def-test expected-ram-roms (:suite roms)
