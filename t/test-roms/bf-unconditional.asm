@@ -1,74 +1,10 @@
     .ORG 0000H
-    LD DE, PROGRAM-1
+#include "include/bf.asm"
+    .ORG COUNTER+10
+    LD SP, $4000
+    LD DE, PROGRAM
     LD HL, PTR
-PORT_ADDR:  db 0
-BRAINFUCK:
-    INC DE
-    LD A, (DE)
-    CP '>'
-    JP Z, INC_PTR
-    CP '<'
-    JP Z, DEC_PTR
-    CP '+'
-    JP Z, INC_CELL
-    CP '-'
-    JP Z, DEC_CELL
-    CP '['
-    JP Z, FWD_CONDITIONAL
-    CP ']'
-    JP Z, BWD_CONDITIONAL
-    CP ','
-    JP Z, INPUT
-    CP '.'
-    JP Z, OUTPUT
-    CP 0xFF
-    JP Z, END
-    CP 0
-    JP Z, END
-    HALT
-INC_PTR:
-    INC HL
-    JP BRAINFUCK
-DEC_PTR:
-    DEC HL
-    JP BRAINFUCK
-INC_CELL:
-    INC (HL)
-    JP BRAINFUCK
-DEC_CELL:
-    INC (HL)
-    JP BRAINFUCK
-FWD_CONDITIONAL:
-    CP A
-    JP Z, SCAN_FWD_MATCHING_PAREN
-    JP INC_PTR
-BWD_CONDITIONAL:
-    CP A
-    JP NZ, SCAN_BWD_MATCHING_PAREN
-    JP INC_PTR
-SCAN_FWD_MATCHING_PAREN:
-    LD B, ']'
-    LD A, (DE)
-    CP B
-    JP NZ, BRAINFUCK
-    INC DE
-    JP SCAN_FWD_MATCHING_PAREN
-SCAN_BWD_MATCHING_PAREN:
-    LD B, '['
-    LD A, (DE)
-    CP B
-    JP NZ, BRAINFUCK
-    DEC DE
-    JP SCAN_BWD_MATCHING_PAREN
-INPUT:
-    IN A, PORT_ADDR
-    LD (HL), A
-    JP BRAINFUCK
-OUTPUT:
-    LD A, (HL)
-    OUT 0, A
-    JP BRAINFUCK
-END:
+    CALL BRAINFUCK
     HALT
 PROGRAM:
     db '+'
@@ -1258,5 +1194,4 @@ PROGRAM:
     db '+'
     db '.'
     db '>'
-    db 0
 PTR:

@@ -1,0 +1,85 @@
+BRAINFUCK:
+    LD A, (DE)
+    CP '>'
+    JP Z, INC_PTR
+    CP '<'
+    JP Z, DEC_PTR
+    CP '+'
+    JP Z, INC_CELL
+    CP '-'
+    JP Z, DEC_CELL
+    CP '['
+    JP Z, START_COND
+    CP ']'
+    JP Z, END_COND
+    CP ','
+    JP Z, INPUT
+    CP '.'
+    JP Z, OUTPUT
+    RET
+INC_PTR:
+    INC HL
+    INC DE
+    JP BRAINFUCK
+DEC_PTR:
+    DEC HL
+    INC DE
+    JP BRAINFUCK
+INC_CELL:
+    INC (HL)
+    INC DE
+    JP BRAINFUCK
+DEC_CELL:
+    INC (HL)
+    INC DE
+    JP BRAINFUCK
+START_COND:
+    LD A, (HL)
+    CP A
+    JP Z, SCAN_FWD_MATCHING_PAREN
+    PUSH DE
+    INC DE
+    JP BRAINFUCK
+END_COND:
+    POP DE
+    LD A, 0
+    LD (COUNTER), A
+    JP BRAINFUCK
+INC_AND_CONTINUE_SEARCH:
+    CALL INC_COUNTER
+CONTINUE_SEARCH:
+    INC DE
+SCAN_FWD_MATCHING_PAREN:
+    LD A, (DE)
+    LD B, '['
+    CP A
+    JP Z, INC_AND_CONTINUE_SEARCH
+    LD B, ']'
+    CP B
+    JP NZ, CONTINUE_SEARCH
+    CALL DEC_COUNTER
+    CP A
+    JP Z, END_COND
+    JP CONTINUE_SEARCH
+INPUT:
+    IN A, 0
+    LD (HL), A
+    INC DE
+    JP BRAINFUCK
+OUTPUT:
+    LD A, (HL)
+    OUT 0, A
+    INC DE
+    JP BRAINFUCK
+INC_COUNTER:
+    LD A, (COUNTER)
+    INC A
+    LD (COUNTER), A
+    RET
+DEC_COUNTER:
+    LD A, (COUNTER)
+    DEC A
+    LD (COUNTER), A
+    RET
+COUNTER:
+    db 0
