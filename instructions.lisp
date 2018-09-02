@@ -14,7 +14,10 @@
 (defmacro define-instruction (name size args &body body)
   (let ((microcode-fn-name
          (intern (concatenate 'string (symbol-name name) "-MICROCODE"))))
-    `(flet ((,microcode-fn-name ,args ,@body))
+    `(flet ((,microcode-fn-name ,args
+              (progn (when logging-enabled
+                       (format t "Executing ~A~%" ,name))
+                     ,@body)))
        (let* ((inst (make-instance 'instruction
                                    :name ',name
                                    :size ,size
