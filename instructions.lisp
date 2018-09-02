@@ -580,7 +580,6 @@ function which knows which direction to go in.
     ;; the c-flag to the z-msb no matter what
     (setf (reg-f cpu) (logior next-flags z-msb))))
 
-;; TODO: Combine with rlc-r
 (define-instruction rlc-indirect-hl #x2 (cpu opcode)
   (let* ((z-value (mem-hl cpu))
          (next-flags (calculate-flags z-value))
