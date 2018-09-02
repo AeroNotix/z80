@@ -553,9 +553,6 @@ reach zero.
   (while (plusp (reg-b cpu))
     (block-output-instruction cpu #'1-)))
 
-(define-instruction cpd #x2 (cpu opcode)
-  )
-
 ;; CB Prefixed opcodes
 
 (define-instruction cb-prefix #x2 (cpu opcode)
