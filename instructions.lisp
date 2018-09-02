@@ -131,7 +131,7 @@
 
 (define-instruction ld-r-indirect-hl #x1 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y opcode))))
-    (ld cpu y 'mem-hl)))
+    (ld cpu y #'mem-hl)))
 
 (define-instruction ld-indirect-hl-r #x1 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode))))
@@ -252,23 +252,23 @@
 
 (define-instruction add-hl-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
-    (inc cpu 'reg-hl :amount (funcall p cpu))))
+    (inc cpu #'reg-hl :amount (funcall p cpu))))
 
 (define-instruction add-r #x1 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode))))
-    (inc cpu 'reg-a :amount (funcall z cpu))))
+    (inc cpu #'reg-a :amount (funcall z cpu))))
 
 (define-instruction add-n #x1 (cpu opcode)
   (let ((value (fetch-byte-from-ram cpu)))
-    (inc cpu 'reg-a :amount value)))
+    (inc cpu #'reg-a :amount value)))
 
 (define-instruction adc-n #x1 (cpu opcode)
   (let ((value (fetch-byte-from-ram cpu)))
-    (inc cpu 'reg-a :amount (+ value (flag-c cpu)))))
+    (inc cpu #'reg-a :amount (+ value (flag-c cpu)))))
 
 (define-instruction adc-r #x1 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode))))
-    (inc cpu 'reg-a :amount (+ (funcall z cpu) (flag-c cpu)))))
+    (inc cpu #'reg-a :amount (+ (funcall z cpu) (flag-c cpu)))))
 
 (define-instruction sub-r #x1 (cpu opcode)
   (error "Not implemented: sub r from reg-a"))
