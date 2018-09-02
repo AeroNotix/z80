@@ -187,7 +187,7 @@
     (dec cpu p)))
 
 (define-instruction scf #x1 (cpu opcode)
-  (setf (reg-f cpu) (logior c-mask (reg-f cpu))))
+  (applyf #'logior (reg-f cpu) c-mask))
 
 (define-instruction ccf #x1 (cpu opcode)
   (error "Not implemented (ccf): invert carry flag"))
@@ -231,8 +231,7 @@
   (error "Not implemented (rrca): rotate a left, copy flags accordingly"))
 
 (define-instruction ex-af-af% #x1 (cpu opcode)
-  (rotatef (reg-af cpu)
-           (reg-af% cpu)))
+  (rotatef (reg-af cpu) (reg-af% cpu)))
 
 (define-instruction exx #x1 (cpu opcode)
   (rotatef (reg-bc cpu) (reg-bc% cpu))
@@ -282,25 +281,24 @@
 
 (define-instruction and-r #x1 (cpu opcode)
   (warn "and-r doesn't set flags, yet")
-  (setf (reg-a cpu) (logand (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) cpu))))
+  (applyf #'logand (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) cpu)))
 
 (define-instruction and-n #x2 (cpu opcode)
   (warn "and-n doesn't set flags, yet")
-  (setf (reg-a cpu) (logand (reg-a cpu) (fetch-byte-from-ram cpu))))
+  (applyf #'logand (reg-a cpu) (fetch-byte-from-ram cpu)))
 
 (define-instruction xor-r #x1 (cpu opcode)
   (warn "xor-r doesn't set flags, yet")
-  (setf (reg-a cpu) (logxor (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) cpu))))
+  (applyf #'logxor (reg-a cpu) (funcall (find-8-bit-register (opcode-z opcode)) cpu)))
 
 (define-instruction xor-n #x2 (cpu opcode)
   (warn "xor-n doesn't set flags, yet")
-  (setf (reg-a cpu) (logxor (reg-a cpu) (fetch-byte-from-ram cpu))))
+  (applyf #'logxor (reg-a cpu) (fetch-byte-from-ram cpu)))
 
 (define-instruction or-r #x1 (cpu opcode)
   (warn "or-r doesn't set flags, yet")
-  (setf (reg-a cpu)
-        (logior (reg-a cpu)
-                (funcall (find-8-bit-register (opcode-z opcode)) cpu))))
+  (applyf #'logior (reg-a cpu)
+          (funcall (find-8-bit-register (opcode-z opcode)) cpu)))
 
 (define-instruction or-n #x2 (cpu opcode)
   (warn "or-n doesn't set flags, yet")
@@ -412,7 +410,7 @@
     (write-word-to-ram cpu address-to-write-to (funcall p cpu))))
 
 (define-instruction neg #x2 (cpu opcode)
-  (setf (reg-a cpu) (twos-complement (reg-a cpu))))
+  (applyf #'twos-complement (reg-a cpu)))
 
 (define-instruction reti-retn #x2 (cpu opcode)
   (warn "reti-retn is supposed to also set IFF1 to IFF2, we don't implement either of those yet")
@@ -477,8 +475,8 @@ reach zero.
 
 (defmethod block-move-instruction ((cpu cpu) op)
   (setf (mem-de cpu) (mem-hl cpu))
-  (setf (reg-hl cpu) (funcall op (reg-hl cpu)))
-  (setf (reg-de cpu) (funcall op (reg-de cpu)))
+  (applyf op (reg-hl cpu))
+  (applyf op (reg-de cpu))
   (decf (reg-bc cpu)))
 
 (define-instruction ldi #x2 (cpu opcode)
@@ -498,8 +496,8 @@ reach zero.
 (defmethod block-compare-instruction ((cpu cpu) op)
   (let* ((result (- (reg-a cpu) (mem-hl cpu))))
     (setf (reg-f cpu) (calculate-flags result))
-    (setf (reg-hl cpu) (funcall op (reg-hl cpu)))
-    (setf (reg-bc cpu) (funcall op (reg-bc cpu)))))
+    (applyf op (reg-hl cpu))
+    (applyf op (reg-bc cpu))))
 
 (define-instruction cpi #x2 (cpu opcode)
   (block-compare-instruction cpu #'1+))
@@ -520,7 +518,7 @@ reach zero.
 (defun block-input-instruction (cpu op)
   (setf (mem-hl cpu) (read-port cpu (reg-c cpu)))
   (decf (reg-b cpu))
-  (setf (reg-hl cpu) (funcall op (reg-hl cpu))))
+  (applyf op (reg-hl cpu)))
 
 (define-instruction ini #x2 (cpu opcode)
   (block-input-instruction cpu #'1+))
@@ -539,7 +537,7 @@ reach zero.
 (defun block-output-instruction (cpu op)
   (setf (port-c cpu) (mem-hl cpu))
   (decf (reg-b cpu))
-  (setf (reg-hl cpu) (funcall op (reg-hl cpu))))
+  (applyf op (reg-hl cpu)))
 
 (define-instruction outi #x2 (cpu opcode)
   (block-output-instruction cpu #'1+))
@@ -591,7 +589,7 @@ function which knows which direction to go in.
     (setf (mem-hl cpu) (logior (ash z-value 1) z-msb))
     ;; logior next-flags z-msb might be wrong. We might need to set
     ;; the c-flag to the z-msb no matter what
-    (setf (reg-f cpu) (logior next-flags z-msb))))
+    (applyf #'logior (reg-f cpu) z-msb)))
 
 (define-instruction rrc-r #x2 (cpu opcode)
   (let* ((z (find-8-bit-register (opcode-z opcode)))
@@ -607,7 +605,7 @@ function which knows which direction to go in.
          (next-flags (calculate-flags z-value))
          (z-lsb (ash (logand z-value #x1) 7)))
     (setf (mem-hl cpu) (logior (rshift z-value 1) z-lsb))
-    (setf (reg-f cpu) (logior next-flags z-lsb))))
+    (applyf #'logior (reg-f cpu) z-lsb)))
 
 (define-instruction rl-r #x2 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode)))
@@ -615,14 +613,14 @@ function which knows which direction to go in.
         (z-msb (rshift (logand z-value #x80) 7))
         (c (flag-c cpu)))
     (funcall (setf-of z) (logand (ash z-value 1) c))
-    (setf (reg-f cpu) (logand z-msb (reg-f cpu)))))
+    (applyf #'logand (reg-f cpu) z-msb)))
 
 (define-instruction rl-indirect-hl #x2 (cpu opcode)
   (let ((z-value (mem-hl cpu))
         (z-msb (rshift (logand z-value #x80) 7))
         (c (flag-c cpu)))
     (setf (mem-hl cpu) (logand (ash z-value 1) c))
-    (setf (reg-f cpu) (logand z-msb (reg-f cpu)))))
+    (applyf #'logand (reg-f cpu) z-msb)))
 
 (define-instruction rr-r #x2 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode)))
@@ -630,7 +628,7 @@ function which knows which direction to go in.
         (z-lsb (logand z-value #x1))
         (c (flag-c cpu)))
     (funcall (setf-of z) (logior (rshift z-value 1) (ash c-flag 7)) cpu)
-    (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
+    (applyf #'logior (reg-f cpu) z-lsb)))
 
 (define-instruction rr-indirect-hl #x2 (cpu opcode)
   (let ((z-value (mem-hl cpu))
@@ -644,13 +642,13 @@ function which knows which direction to go in.
         (z-value (funcall z cpu))
         (z-msb (rshift (logand z-value #x80) 7)))
     (funcall (setf-of z) (ash z-value 1) cpu)
-    (setf (reg-f cpu) (logior (reg-f cpu) z-msb))))
+    (applyf #'logior (reg-f cpu) z-msb)))
 
 (define-instruction sla-indirect-hl #x2 (cpu opcode)
   (let ((z-value (mem-hl cpu))
         (z-msb (rshift (logand z-value #x80) 7)))
     (setf (mem-hl cpu) (ash z-value 1))
-    (setf (reg-f cpu) (logior (reg-f cpu) z-msb))))
+    (applyf #'logior (reg-f cpu) z-msb)))
 
 (define-instruction sra-r #x2 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode)))
@@ -668,26 +666,26 @@ function which knows which direction to go in.
         (z-value (funcall z cpu))
         (z-msb (rshift (logand z-value #x80) 7)))
     (funcall (setf-of z) (logior (ash z-value 1) #x1))
-    (setf (reg-f cpu) (logior (reg-f cpu) #x1))))
+    (applyf #'logior (reg-f cpu) #x1)))
 
 (define-instruction sll-indirect-hl #x2 (cpu opcode)
   (let ((z-value (mem-hl cpu))
         (z-msb (rshift (logand z-value #x80) 7)))
     (setf (mem-hl cpu) (logior (ash z-value 1) #x1))
-    (setf (reg-f cpu) (logior (reg-f cpu) #x1))))
+    (applyf #'logior (reg-f cpu) #x1)))
 
 (define-instruction srl-r #x2 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode)))
         (z-value (funcall z cpu))
         (z-lsb (logand z-value #x1)))
     (funcall (setf-of z) (logior (rshift z-value 1) (ash #x1 7)))
-    (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
+    (applyf #'logior (reg-f cpu) z-lsb)))
 
 (define-instruction srl-indirect-hl #x2 (cpu opcode)
   (let ((z-value (mem-hl cpu))
         (z-lsb (logand z-value #x1)))
     (setf (mem-hl cpu) (logior (rshift z-value 1) (ash #x1 7)))
-    (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
+    (applyf #'logior (reg-f cpu) z-lsb)))
 
 (defun bit-test-flags (value position)
   (logior h-mask (if (logbitp position value) z-mask 0)))
