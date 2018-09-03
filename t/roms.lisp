@@ -74,7 +74,8 @@ register
 
 (def-test expected-output-roms (:suite roms)
   (let ((roms-and-expected-output (list (list "peripheral-test.rom" (format nil "THISISATEST~C~C" #\Newline #\Return) #x0100)
-                                        (list "bf-unconditional.rom" "Hello, world!" #x94))))
+                                        (list "bf-unconditional.rom" "Hello, world!" #x94)
+                                        (list "output.rom" "HELLO!!OLLEHHH"))))
     (apply-tests #'test-output-assertion-rom roms-and-expected-output)))
 
 (def-test expected-input-roms (:suite roms)
