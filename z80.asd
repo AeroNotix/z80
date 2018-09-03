@@ -14,7 +14,8 @@
                (:file "peripherals"))
   :depends-on (:alexandria
                :cl-fad
-               :flexi-streams))
+               :flexi-streams
+               :place-utils))
 
 (asdf:defsystem #:z80/tests
   :version "0.0.1"
