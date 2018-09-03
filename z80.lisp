@@ -1,7 +1,7 @@
 (in-package :z80)
 
 (defclass cpu ()
-  ((ram :initform (make-array 65535 :initial-element #x00) :accessor ram)
+  ((ram :initform (make-array 65536 :initial-element #x00) :accessor ram)
    (elapsed-cycles :initform 0)
    (interrupts-enabled? :initform T :accessor interrupts-enabled?)
    (halted? :initform nil :accessor halted?)
