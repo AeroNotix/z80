@@ -21,8 +21,7 @@ register
 
 (defclass fake-peripheral () ())
 
-(defmethod z80::read-from ((fp fake-peripheral))
-  #x0050)
+(defmethod z80::read-from ((fp fake-peripheral)) #x0050)
 
 (defmacro with-stdout-to-string (&body forms)
   `(let ((*standard-output* (make-string-output-stream)))
