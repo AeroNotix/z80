@@ -35,11 +35,18 @@ register
     (z80:emulate-rom cpu rom)
     (is (eql (funcall value-extractor cpu) expected-value))))
 
-(defun test-io-assertion-rom (rom-filename expected-output &optional (starting-pc 0))
+(defun test-output-assertion-rom (rom-filename expected-output &optional (starting-pc 0))
   (let ((rom (get-rom rom-filename))
         (cpu (make-instance 'z80:cpu
-                            :peripherals (list (make-instance 'z80::terminal-printer-peripheral)))))
+                            :peripherals (list (make-instance 'z80::simple-io-peripheral)))))
     (is (equal expected-output (with-stdout-to-string (z80:emulate-rom cpu rom :starting-pc starting-pc))))))
+
+(defun test-input-assertion-rom (rom-filename expected-input start end &optional (starting-pc 0))
+  (let* ((rom (get-rom rom-filename))
+         (sis (make-string-input-stream expected-input))
+         (cpu (make-instance 'z80:cpu
+                             :peripherals (list (make-instance 'z80::simple-io-peripheral :input-stream sis)))))
+    (is (equalp (subseq (z80::ram (z80:emulate-rom cpu rom :starting-pc starting-pc)) start end) expected-input))))
 
 (defun test-ram-assertion-rom (rom-filename expected-value start end)
   (let ((rom (get-rom rom-filename))
@@ -65,10 +72,15 @@ register
                                         (list "res-set.rom" #'z80::reg-a 170))))
     (apply-tests #'test-register-assertion-rom roms-and-expected-values)))
 
-(def-test expected-io-roms (:suite roms)
+(def-test expected-output-roms (:suite roms)
   (let ((roms-and-expected-output (list (list "peripheral-test.rom" (format nil "THISISATEST~C~C" #\Newline #\Return) #x0100)
                                         (list "bf-unconditional.rom" "Hello, world!" #x94))))
-    (apply-tests #'test-io-assertion-rom roms-and-expected-output)))
+    (apply-tests #'test-output-assertion-rom roms-and-expected-output)))
+
+(def-test expected-input-roms (:suite roms)
+  (let ((roms-and-expected-input (list
+                                  (list "input.rom" "ABCDEFGHJI" #x1000 #x100A))))
+    (apply-tests #'test-input-assertion-rom roms-and-expected-input)))
 
 (def-test expected-ram-roms (:suite roms)
   (let ((roms-and-expected-ram-data (list (list "block-move-ldir.rom"

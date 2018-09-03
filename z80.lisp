@@ -9,7 +9,7 @@
    ;; allows code using the emulator to attach peripherals on the I/O
    ;; ports that will be written to/read from when the IN/OUT
    ;; instructions are executed.
-   (peripherals :initform (list (make-instance 'terminal-printer-peripheral))
+   (peripherals :initform (list (make-instance 'simple-io-peripheral))
                 :accessor peripherals :initarg :peripherals)
    ;; R: contains the DRAM refresh count.
    (r :initform 0 :accessor reg-r)

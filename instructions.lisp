@@ -397,11 +397,11 @@
 
 (define-instruction in-r-c #x2 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y cpu))))
-    (ld cpu y #'port-c)))
+    (ld cpu y 'port-c)))
 
 (define-instruction out-c-r #x2 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y opcode))))
-    (ld cpu #'port-c y)))
+    (ld cpu 'port-c y)))
 
 (define-instruction sbc-hl-rr #x2 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))

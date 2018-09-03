@@ -9,7 +9,7 @@
   ((cpu :accessor cpu :initform
         (make-instance
          'z80::cpu
-         :peripherals (list (make-instance 'z80::terminal-printer-peripheral))))
+         :peripherals (list (make-instance 'z80::simple-io-peripheral))))
    (run-btn :accessor run-btn)
    (step-btn :accessor step-btn)
    (current-instruction-le :accessor current-instruction-le)
