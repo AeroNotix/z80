@@ -3,6 +3,15 @@
 (def-suite roms)
 (in-suite roms)
 
+#|
+
+assertion values are just any old value chosen. Often chosen to be
+relatively "impossible" to achieve accidentally from the operations in
+the ROM. E.g. wouldn't assert 255 when 255 was manually placed into a
+register
+
+|#
+
 (defun test-roms ()
   (run! 'roms))
 
@@ -43,10 +52,6 @@
     (mapcar (lambda (arg) (apply asserter arg)) args)))
 
 (def-test expected-register-value-roms (:suite roms)
-  ;; assertion values are just any old value chosen. Often chosen to
-  ;; be relatively "impossible" to achieve accidentally from the
-  ;; operations in the ROM. E.g. wouldn't assert 255 when 255 was
-  ;; manually placed into a register
   (let ((roms-and-expected-values (list (list "jump-to-port-address.rom" #'z80::reg-a 123)
                                         (list "load-tests.rom" #'z80::reg-l 123)
                                         (list "load-literals.rom" #'z80::reg-l 7)
