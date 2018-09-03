@@ -700,27 +700,17 @@ function which knows which direction to go in.
         (y (opcode-y opcode)))
     (setf (reg-f cpu) (bit-test-flags z-value y))))
 
-(define-instruction res-b-r #x2 (cpu opcode)
+(defun reset/set-bits (cpu opcode res/set-fn)
   (let* ((z (find-8-bit-register (opcode-z opcode)))
          (z-value (funcall z cpu))
          (y (opcode-y opcode)))
-    (funcall (setf-of z) (reset-bit-at z-value y) cpu)))
+    (funcall (setf-of z) (funcall res/set-fn z-value y) cpu)))
 
-(define-instruction res-b-indirect-hl #x2 (cpu opcode)
-  (let* ((z-value (mem-hl cpu))
-         (y (opcode-y opcode)))
-    (setf (mem-hl cpu) (reset-bit-at z-value y))))
+(define-instruction res-b-r #x2 (cpu opcode)
+  (reset/set-bits cpu opcode #'reset-bit-at))
 
 (define-instruction set-b-r #x2 (cpu opcode)
-  (let* ((z (find-8-bit-register (opcode-z opcode)))
-         (z-value (funcall z cpu))
-         (y (opcode-y opcode)))
-    (funcall (setf-of z) (set-bit-at z-value y) cpu)))
-
-(define-instruction set-b-indirect-hl #x2 (cpu opcode)
-  (let* ((z-value (mem-hl cpu))
-         (y (opcode-y opcode)))
-    (setf (mem-hl cpu) (set-bit-at z-value y))))
+  (reset/set-bits cpu opcode #'set-bit-at))
 
 (define-instruction dd-prefix #x2 (cpu opcode)
   (error "Not implemented: dd-prefixes, switch the instruction table to dd-prefixed"))

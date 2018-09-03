@@ -513,7 +513,7 @@
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
 	                          res-b-r
 
 	                          res-b-r
@@ -522,7 +522,7 @@
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
 	                          res-b-r
 
 	                          res-b-r
@@ -531,7 +531,7 @@
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
 	                          res-b-r
 
 	                          res-b-r
@@ -540,7 +540,7 @@
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
 	                          res-b-r
 
 	                          res-b-r
@@ -549,7 +549,7 @@
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
 	                          res-b-r
 
 	                          res-b-r
@@ -558,7 +558,7 @@
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
 	                          res-b-r
 
 	                          res-b-r
@@ -567,16 +567,16 @@
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
 	                          res-b-r
 
-	                          res-b-r
-	                          res-b-r
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
 	                          res-b-r
-	                          res-b-indirect-hl
+	                          res-b-r
+	                          res-b-r
+	                          res-b-r
 	                          res-b-r
 
 	                          set-b-r
@@ -585,7 +585,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r
 
 	                          set-b-r
@@ -594,7 +594,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r
 
 	                          set-b-r
@@ -603,7 +603,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r
 
 	                          set-b-r
@@ -612,7 +612,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r
 
 	                          set-b-r
@@ -621,7 +621,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r
 
 	                          set-b-r
@@ -630,7 +630,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r
 
 	                          set-b-r
@@ -639,7 +639,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r
 
 	                          set-b-r
@@ -648,7 +648,7 @@
 	                          set-b-r
 	                          set-b-r
 	                          set-b-r
-	                          set-b-indirect-hl
+	                          set-b-r
 	                          set-b-r))))
 
 (defparameter condition-table
