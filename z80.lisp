@@ -9,7 +9,8 @@
    ;; allows code using the emulator to attach peripherals on the I/O
    ;; ports that will be written to/read from when the IN/OUT
    ;; instructions are executed.
-   (peripherals :initform nil :accessor peripherals :initarg :peripherals)
+   (peripherals :initform (list (make-instance 'terminal-printer-peripheral))
+                :accessor peripherals :initarg :peripherals)
    ;; R: contains the DRAM refresh count.
    (r :initform 0 :accessor reg-r)
    ;; I: the IV register
@@ -128,6 +129,9 @@
         (read-from peripheral)
         0)))
 
+(defmethod write-port ((cpu cpu) (peripheral peripheral) value)
+  (write-to peripheral value))
+
 (defmethod write-port ((cpu cpu) port-id value)
   (let ((peripheral (nth port-id (peripherals cpu))))
     (when peripheral
@@ -137,7 +141,8 @@
   (read-from (elt (peripherals cpu) (reg-c cpu))))
 
 (defmethod (setf port-c) (value (cpu cpu))
-  (write-port cpu (elt (peripherals cpu) (reg-c cpu)) value))
+  (when (>= (length (peripherals cpu)) (reg-c cpu))
+    (write-port cpu (elt (peripherals cpu) (reg-c cpu)) value)))
 
 (defmethod flag-s ((cpu cpu))
   (logbitp s-flag-pos (reg-f cpu)))

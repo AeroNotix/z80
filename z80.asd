@@ -6,12 +6,12 @@
   :components ((:file "package")
                (:file "macros")
                (:file "constants")
+               (:file "peripherals")
                (:file "z80")
                (:file "debug")
                (:file "instructions")
                (:file "tables")
-               (:file "bitmaths")
-               (:file "peripherals"))
+               (:file "bitmaths"))
   :depends-on (:alexandria
                :cl-fad
                :flexi-streams
