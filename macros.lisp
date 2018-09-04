@@ -22,8 +22,8 @@
 
 (defmacro with-addressing-mode (mode &body body)
   (let ((mode (case mode
-                (:base (list '*8-bit-registers-base* '*16-bit-registers-base* '*16-bit-registers%-base*))
-                (:ix (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix*))
-                (:iy (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy*)))))
+                (:base %base-addressing-mode%)
+                (:ix %ix-addressing-mode%)
+                (:iy %iy-addressing-mode%))))
     `(destructuring-bind (*8-bit-registers* *16-bit-registers* *16-bit-registers%*) ,mode
        ,@body)))

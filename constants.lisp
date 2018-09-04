@@ -51,6 +51,13 @@
 (defparameter *16-bit-registers* *16-bit-registers-base*)
 (defparameter *16-bit-registers%* *16-bit-registers%-base*)
 
+(defparameter %base-addressing-mode%
+  (list '*8-bit-registers-base* '*16-bit-registers-base* '*16-bit-registers%-base*))
+(defparameter %ix-addressing-mode%
+  (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix*))
+(defparameter %iy-addressing-mode%
+  (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy*))
+
 ;; put this somewhere better, external library?
 (defconstant single-float-positive-infinity
   #+sbcl sb-ext:single-float-positive-infinity
