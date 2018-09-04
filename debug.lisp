@@ -32,11 +32,13 @@
         (reg-d cpu)
         (reg-e cpu)
         (reg-h cpu)
-        (reg-f cpu)))
+        (reg-l cpu)
+        (reg-f cpu)
+        (mem-hl cpu)))
 
 (defun dump-registers (cpu)
   (format t "~{~{~2a ~^| ~}~%~}~%"
-          (list '("a" "b" "c" "d" "e" "h" "f")
+          (list '("a" "b" "c" "d" "e" "h" "l" "f" "(hl)")
                 (dump-registers-to-list cpu))))
 
 (defun dump-flags (cpu)
