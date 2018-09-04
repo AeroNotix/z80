@@ -85,8 +85,8 @@
      (setf (gethash ',whole-accessor 16-bit-register->8-bit-registers)
            (cons ',upper-accessor ',lower-accessor)))))
 
-(define-register-operators ix i-ix x)
-(define-register-operators iy i-iy y)
+(define-register-operators ix ixh ixl)
+(define-register-operators iy iyh iyl)
 (define-register-operators af a f)
 (define-register-operators bc b c)
 (define-register-operators de d e)
@@ -98,6 +98,9 @@
 (define-register-operators de% d% e%)
 (define-register-operators hl% h% l%)
 (define-register-operators sp% s% s%)
+
+(defmethod ix-with-offset ((cpu cpu)))
+(defmethod iy-with-offset ((cpu cpu)))
 
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
   (replace (ram cpu) rom :start1 offset))

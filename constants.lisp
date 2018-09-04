@@ -20,6 +20,37 @@
 (defparameter n-mask (ash 1 n-flag-pos))
 (defparameter c-mask (ash 1 c-flag-pos))
 
+(defparameter *8-bit-registers-base*
+  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-h 'reg-l 'mem-hl 'reg-a))
+
+(defparameter *8-bit-registers-indexed-ix*
+  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-ixh 'reg-ixl 'ix-with-offset 'reg-a))
+
+(defparameter *8-bit-registers-indexed-iy*
+  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-iyh 'reg-iyl 'iy-with-offset 'reg-a))
+
+(defparameter *16-bit-registers-base*
+  (list 'reg-bc 'reg-de 'reg-hl 'reg-sp))
+
+(defparameter *16-bit-registers-indexed-ix*
+  (list 'reg-bc 'reg-de 'reg-ix 'reg-sp))
+
+(defparameter *16-bit-registers-indexed-iy*
+  (list 'reg-bc 'reg-de 'reg-iy 'reg-sp))
+
+(defparameter *16-bit-registers%-base*
+  (list 'reg-bc 'reg-de 'reg-hl 'reg-af))
+
+(defparameter *16-bit-registers%-indexed-ix*
+  (list 'reg-bc 'reg-de 'reg-ix 'reg-af))
+
+(defparameter *16-bit-registers%-indexed-iy*
+  (list 'reg-bc 'reg-de 'reg-iy 'reg-af))
+
+(defparameter *8-bit-registers* *8-bit-registers-base*)
+(defparameter *16-bit-registers* *16-bit-registers-base*)
+(defparameter *16-bit-registers%* *16-bit-registers%-base*)
+
 ;; put this somewhere better, external library?
 (defconstant single-float-positive-infinity
   #+sbcl sb-ext:single-float-positive-infinity

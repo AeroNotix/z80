@@ -16,10 +16,10 @@
   :licence "BSD"
   :serial t
   :components ((:file "package")
-               (:file "macros")
-               (:file "constants")
                (:file "peripherals")
                (:file "z80")
+               (:file "constants")
+               (:file "macros")
                (:file "debug")
                (:file "instructions")
                (:file "tables")

@@ -103,10 +103,10 @@
     (funcall (setf-of y) result c)))
 
 (defun find-8-bit-register (i)
-  (elt (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-h 'reg-l 'mem-hl 'reg-a) i))
+  (elt *8-bit-registers* i))
 
 (defun find-16-bit-register (i)
-  (elt (list 'reg-bc 'reg-de 'reg-hl 'reg-sp) i))
+  (elt *16-bit-registers* i))
 
 (defun find-16-bit-register% (i)
   (elt (list 'reg-bc 'reg-de 'reg-hl 'reg-af) i))
@@ -717,7 +717,11 @@ function which knows which direction to go in.
   (reset/set-bits cpu opcode #'set-bit-at))
 
 (define-instruction dd-prefix #x2 (cpu opcode)
-  (error "Not implemented: dd-prefixes, switch the instruction table to dd-prefixed"))
+  (with-addressing-mode :ix
+    (incf (pc cpu))
+    (execute-next-instruction cpu)))
 
 (define-instruction fd-prefix #x2 (cpu opcode)
-  (error "Not implemented: fd-prefixes, switch the instruction table to fd-prefixed"))
+  (with-addressing-mode :iy
+    (incf (pc cpu))
+    (execute-next-instruction cpu)))
