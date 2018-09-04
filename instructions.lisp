@@ -32,6 +32,9 @@
 ;; |-x-|   |---y---|   |---z---|
 ;;         |-p-|   q
 
+(defun opcode-x (opcode)
+  (logand (rshift opcode 7) #x03))
+
 (defun opcode-y (opcode)
   (logand (rshift opcode 3) #x07))
 
