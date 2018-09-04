@@ -1,4 +1,16 @@
-(asdf:defsystem #:z80
+(defsystem #:z80/asm
+  :version "0.0.1"
+  :description "Zilog Z80 Assembler"
+  :license "BSD"
+  :depends-on (:alexandria)
+  :components ((:module "asm"
+                        :serial t
+                        :components
+                        ((:file "package")
+                         (:file "assembler")))))
+
+
+(defsystem #:z80
   :version "0.0.1"
   :description "Zilog Z80 Emulator"
   :licence "BSD"
@@ -15,9 +27,10 @@
   :depends-on (:alexandria
                :cl-fad
                :flexi-streams
-               :place-utils))
+               :place-utils
+               :z80/asm))
 
-(asdf:defsystem #:z80/tests
+(defsystem #:z80/tests
   :version "0.0.1"
   :description "Zilog Z80 Emulator test package"
   :licence "BSD"
@@ -29,7 +42,7 @@
 			             (:file "roms")
                          (:file "registers")))))
 
-(asdf:defsystem #:z80/ui
+(defsystem #:z80/ui
   :version "0.0.1"
   :description "Zilog Z80 Emulator debugger/ui"
   :licence "BSD"
