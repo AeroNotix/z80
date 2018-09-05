@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>489</width>
-    <height>313</height>
+    <width>499</width>
+    <height>284</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -136,36 +136,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="5">
-       <widget class="QLCDNumber" name="PC_Reg">
-        <property name="numDigits">
-         <number>4</number>
-        </property>
-        <property name="mode">
-         <enum>QLCDNumber::Hex</enum>
-        </property>
-        <property name="segmentStyle">
-         <enum>QLCDNumber::Flat</enum>
-        </property>
-        <property name="value" stdset="0">
-         <double>65535.000000000000000</double>
-        </property>
-        <property name="readOnly" stdset="0">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="4">
-       <widget class="QLabel" name="label_PC_Reg">
+      <item row="3" column="4">
+       <widget class="QLabel" name="label_SP_Reg">
         <property name="text">
-         <string>PC</string>
+         <string>SP</string>
         </property>
         <property name="buddy">
-         <cstring>PC_Reg</cstring>
+         <cstring>SP_Reg</cstring>
         </property>
        </widget>
       </item>
-      <item row="1" column="5">
+      <item row="3" column="5">
        <widget class="QLCDNumber" name="SP_Reg">
         <property name="numDigits">
          <number>4</number>
@@ -181,13 +162,75 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="4">
-       <widget class="QLabel" name="label_SP_Reg">
+      <item row="2" column="5">
+       <widget class="QLCDNumber" name="PC_Reg">
+        <property name="numDigits">
+         <number>5</number>
+        </property>
+        <property name="mode">
+         <enum>QLCDNumber::Dec</enum>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+        <property name="value" stdset="0">
+         <double>65535.000000000000000</double>
+        </property>
+        <property name="readOnly" stdset="0">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="4">
+       <widget class="QLabel" name="label_PC_Reg">
         <property name="text">
-         <string>SP</string>
+         <string>PC</string>
         </property>
         <property name="buddy">
-         <cstring>SP_Reg</cstring>
+         <cstring>PC_Reg</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>IX</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>IY</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="5">
+       <widget class="QLCDNumber" name="IX_Reg">
+        <property name="numDigits">
+         <number>4</number>
+        </property>
+        <property name="mode">
+         <enum>QLCDNumber::Hex</enum>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+        <property name="readOnly" stdset="0">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QLCDNumber" name="IY_Reg">
+        <property name="numDigits">
+         <number>4</number>
+        </property>
+        <property name="mode">
+         <enum>QLCDNumber::Hex</enum>
+        </property>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
         </property>
        </widget>
       </item>

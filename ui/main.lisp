@@ -19,6 +19,10 @@
    (bc-register-le :accessor b-register-le)
    (de-register-le :accessor d-register-le)
    (hl-register-le :accessor h-register-le)
+
+   (ix-register-le :accessor ix-register-le)
+   (iy-register-le :accessor iy-register-le)
+
    (halted-cb :accessor halted-cb)
    (s-flag-cb :accessor s-flag-cb)
    (z-flag-cb :accessor z-flag-cb)
@@ -47,6 +51,8 @@
                hl-register-le
                pc-register-le
                sp-register-le
+               ix-register-le
+               iy-register-le
                halted-cb
                s-flag-cb
                z-flag-cb
@@ -70,7 +76,9 @@
     (#_display af-register-le (z80::reg-af cpu))
     (#_display bc-register-le (z80::reg-bc cpu))
     (#_display de-register-le (z80::reg-de cpu))
-    (#_display hl-register-le (z80::reg-hl cpu))))
+    (#_display hl-register-le (z80::reg-hl cpu))
+    (#_display ix-register-le (z80::reg-ix cpu))
+    (#_display iy-register-le (z80::reg-iy cpu))))
 
 (defmethod run-emulator ((instance main-window))
   ;; TODO: make the emulator run asynchronously
@@ -138,6 +146,8 @@
                      hl-register-le
                      sp-register-le
                      pc-register-le
+                     ix-register-le
+                     iy-register-le
 
                      halted-cb
 
@@ -159,6 +169,8 @@
                 hl-register-le (find-child window "HL_Reg")
                 sp-register-le (find-child window "SP_Reg")
                 pc-register-le (find-child window "PC_Reg")
+                ix-register-le (find-child window "IX_Reg")
+                iy-register-le (find-child window "IY_Reg")
 
                 halted-cb (find-child window "cb_halted")
 
