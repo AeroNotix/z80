@@ -109,7 +109,7 @@
   (elt *16-bit-registers* i))
 
 (defun find-16-bit-register% (i)
-  (elt (list 'reg-bc 'reg-de 'reg-hl 'reg-af) i))
+  (elt *16-bit-registers%* i))
 
 (define-instruction nop #x1 (cpu opcode))
 
@@ -135,11 +135,11 @@
 
 (define-instruction ld-r-indirect-hl #x1 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y opcode))))
-    (ld cpu y #'mem-hl)))
+    (ld cpu y 'address-register-memory)))
 
 (define-instruction ld-indirect-hl-r #x1 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode))))
-    (ld cpu 'mem-hl z)))
+    (ld cpu 'address-register-memory z)))
 
 (define-instruction ld-indirect-bc-a #x1 (cpu opcode)
   (setf (mem-bc cpu) (reg-a cpu)))
@@ -157,19 +157,19 @@
   (setf (reg-a cpu) (elt (ram cpu) (fetch-word-from-ram cpu))))
 
 (define-instruction ld-indirect-nn-hl #x3 (cpu opcode)
-  (setf (elt (ram cpu) (fetch-word-from-ram cpu)) (reg-hl cpu)))
+  (setf (elt (ram cpu) (fetch-word-from-ram cpu)) (address-register cpu)))
 
 (define-instruction ld-indirect-nn-a #x3 (cpu opcode)
   (setf (elt (ram cpu) (fetch-word-from-ram cpu)) (reg-a cpu)))
 
 (define-instruction ld-hl-indirect-nn #x3 (cpu opcode)
-  (setf (reg-hl cpu) (elt (ram cpu) (fetch-word-from-ram cpu))))
+  (setf (address-register cpu) (elt (ram cpu) (fetch-word-from-ram cpu))))
 
 (define-instruction ld-indirect-hl-n #x2 (cpu opcode)
-  (setf (mem-hl cpu) (fetch-byte-from-ram cpu)))
+  (setf (address-register-memory cpu) (fetch-byte-from-ram cpu)))
 
 (define-instruction ld-sp-hl #x1 (cpu opcode)
-  (setf (reg-sp cpu) (reg-hl cpu)))
+  (setf (reg-sp cpu) (address-register cpu)))
 
 (define-instruction inc-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
@@ -180,10 +180,10 @@
     (inc cpu y)))
 
 (define-instruction inc-indirect-hl #x1 (cpu opcode)
-  (incf (elt (ram cpu) (reg-hl cpu))))
+  (incf (elt (ram cpu) (address-register cpu))))
 
 (define-instruction dec-indirect-hl #x1 (cpu opcode)
-  (decf (elt (ram cpu) (reg-hl cpu))))
+  (decf (elt (ram cpu) (address-register cpu))))
 
 (define-instruction dec-r #x1 (cpu opcode)
   (let ((y (find-8-bit-register (opcode-y opcode))))
@@ -243,20 +243,20 @@
 (define-instruction exx #x1 (cpu opcode)
   (rotatef (reg-bc cpu) (reg-bc% cpu))
   (rotatef (reg-de cpu) (reg-de% cpu))
-  (rotatef (reg-hl cpu) (reg-hl% cpu)))
+  (rotatef (address-register cpu) (address-register% cpu)))
 
 (define-instruction ex-indirect-sp-hl #x1 (cpu opcode)
-  (rotatef (mem-sp cpu) (reg-hl cpu)))
+  (rotatef (mem-sp cpu) (address-register cpu)))
 
 (define-instruction ex-hl-hl% #x1 (cpu opcode)
   (rotatef (reg-hl cpu) (reg-hl% cpu)))
 
 (define-instruction ex-de-hl #x1 (cpu opcode)
-  (rotatef (reg-de cpu) (reg-hl cpu)))
+  (rotatef (reg-de cpu) (address-register cpu)))
 
 (define-instruction add-hl-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
-    (inc cpu #'reg-hl :amount (funcall p cpu))))
+    (inc cpu #'address-register :amount (funcall p cpu))))
 
 (define-instruction add-r #x1 (cpu opcode)
   (let ((z (find-8-bit-register (opcode-z opcode))))
@@ -329,7 +329,7 @@
     (setf (pc cpu) jump-address)))
 
 (define-instruction jp-hl #x3 (cpu opcode)
-  (let ((jump-address (reg-hl cpu)))
+  (let ((jump-address (address-register cpu)))
     (setf (pc cpu) jump-address)))
 
 (define-instruction jr-d #x2 (cpu opcode)
@@ -409,7 +409,7 @@
 
 (define-instruction sbc-hl-rr #x2 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
-    (dec cpu #'reg-hl (+ (funcall p cpu) (flag-c cpu)))))
+    (dec cpu #'address-register (+ (funcall p cpu) (flag-c cpu)))))
 
 (define-instruction ld-indirect-nn-rr #x4 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode)))
@@ -444,7 +444,7 @@
 
 (define-instruction adc-hl-rr #x2 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))
-    (inc cpu #'reg-hl (+ (funcall p cpu) (flag-c cpu)))))
+    (inc cpu #'address-register (+ (funcall p cpu) (flag-c cpu)))))
 
 (define-instruction ld-rr-indirect-nn #x4 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode)))
@@ -456,15 +456,15 @@
 (define-instruction rld-rrd #x2 (cpu opcode)
   (let ((a-upper-tetrade (logand #xFF00 (reg-a cpu)))
         (a-lower-tetrade (logand #x00FF (reg-a cpu)))
-        (mem-hl-upper-tetrade (logand #xFF00 (mem-hl cpu)))
-        (mem-hl-lower-tetrade (logand #x00FF (mem-hl cpu))))
+        (mem-hl-upper-tetrade (logand #xFF00 (address-register-memory cpu)))
+        (mem-hl-lower-tetrade (logand #x00FF (address-register-memory cpu))))
     ;; define this
     (when (= opcode #x6F)
       (setf (reg-a cpu) (logand mem-hl-upper-tetrade a-upper-tetrade))
-      (setf (mem-hl cpu) (logand (ash mem-hl-lower-tetrade 8) a-lower-tetrade)))
+      (setf (address-register-memory cpu) (logand (ash mem-hl-lower-tetrade 8) a-lower-tetrade)))
     (when (= opcode #x67)
       (setf (reg-a cpu) (logand a-upper-tetrade mem-hl-lower-tetrade))
-      (setf (mem-hl cpu) (logand (ash a-lower-tetrade 8) (rshift mem-hl-upper-tetrade 8))))))
+      (setf (address-register-memory cpu) (logand (ash a-lower-tetrade 8) (rshift mem-hl-upper-tetrade 8))))))
 
 #|
 
@@ -481,8 +481,8 @@ reach zero.
 |#
 
 (defmethod block-move-instruction ((cpu cpu) op)
-  (setf (mem-de cpu) (mem-hl cpu))
-  (funcallf op (reg-hl cpu))
+  (setf (mem-de cpu) (address-register-memory cpu))
+  (funcallf op (address-register cpu))
   (funcallf op (reg-de cpu))
   (decf (reg-bc cpu)))
 
@@ -501,16 +501,16 @@ reach zero.
     (block-move-instruction cpu #'1-)))
 
 (defmethod block-compare-instruction ((cpu cpu) op)
-  (let* ((result (- (reg-a cpu) (mem-hl cpu))))
+  (let* ((result (- (reg-a cpu) (address-register-memory cpu))))
     (setf (reg-f cpu) (calculate-flags result))
-    (funcallf op (reg-hl cpu))
+    (funcallf op (address-register cpu))
     (funcallf op (reg-bc cpu))))
 
 (define-instruction cpi #x2 (cpu opcode)
   (block-compare-instruction cpu #'1+))
 
 (define-instruction cpir #x2 (cpu opcode)
-  (while (and (/= (reg-a cpu) (mem-hl cpu))
+  (while (and (/= (reg-a cpu) (address-register-memory cpu))
               (plusp (reg-bc cpu)))
     (block-compare-instruction cpu #'1+)))
 
@@ -518,14 +518,14 @@ reach zero.
   (block-compare-instruction cpu #'1-))
 
 (define-instruction cpdr #x2 (cpu opcode)
-  (while (and (/= (reg-a cpu) (mem-hl cpu))
+  (while (and (/= (reg-a cpu) (address-register-memory cpu))
               (plusp (reg-bc cpu)))
     (block-compare-instruction cpu #'1-)))
 
 (defun block-input-instruction (cpu op)
-  (setf (mem-hl cpu) (read-port cpu (reg-c cpu)))
+  (setf (address-register-memory cpu) (read-port cpu (reg-c cpu)))
   (decf (reg-b cpu))
-  (funcallf op (reg-hl cpu)))
+  (funcallf op (address-register cpu)))
 
 (define-instruction ini #x2 (cpu opcode)
   (block-input-instruction cpu #'1+))
@@ -542,9 +542,9 @@ reach zero.
     (block-input-instruction cpu #'1-)))
 
 (defun block-output-instruction (cpu op)
-  (setf (port-c cpu) (mem-hl cpu))
+  (setf (port-c cpu) (address-register-memory cpu))
   (decf (reg-b cpu))
-  (funcallf op (reg-hl cpu)))
+  (funcallf op (address-register cpu)))
 
 (define-instruction outi #x2 (cpu opcode)
   (block-output-instruction cpu #'1+))
@@ -585,11 +585,11 @@ function which knows which direction to go in.
     (setf (reg-f cpu) (logior next-flags z-msb))))
 
 (define-instruction rlc-indirect-hl #x2 (cpu opcode)
-  (let* ((z-value (mem-hl cpu))
+  (let* ((z-value (address-register-memory cpu))
          (next-flags (calculate-flags z-value))
          ;; put #x80 in a define
          (z-msb (rshift (logand z-value #x80) 7)))
-    (setf (mem-hl cpu) (logior (ash z-value 1) z-msb))
+    (setf (address-register-memory cpu) (logior (ash z-value 1) z-msb))
     ;; logior next-flags z-msb might be wrong. We might need to set
     ;; the c-flag to the z-msb no matter what
     (funcallf #'logior (reg-f cpu) z-msb)))
@@ -603,11 +603,11 @@ function which knows which direction to go in.
     (setf (reg-f cpu) (logior next-flags z-lsb))))
 
 (define-instruction rrc-indirect-hl #x2 (cpu opcode)
-  (let* ((z (mem-hl cpu))
+  (let* ((z (address-register-memory cpu))
          (z-value (funcall z cpu))
          (next-flags (calculate-flags z-value))
          (z-lsb (ash (logand z-value #x1) 7)))
-    (setf (mem-hl cpu) (logior (rshift z-value 1) z-lsb))
+    (setf (address-register-memory cpu) (logior (rshift z-value 1) z-lsb))
     (funcallf #'logior (reg-f cpu) z-lsb)))
 
 (define-instruction rl-r #x2 (cpu opcode)
@@ -619,10 +619,10 @@ function which knows which direction to go in.
     (funcallf #'logand (reg-f cpu) z-msb)))
 
 (define-instruction rl-indirect-hl #x2 (cpu opcode)
-  (let ((z-value (mem-hl cpu))
+  (let ((z-value (address-register-memory cpu))
         (z-msb (rshift (logand z-value #x80) 7))
         (c (flag-c cpu)))
-    (setf (mem-hl cpu) (logand (ash z-value 1) c))
+    (setf (address-register-memory cpu) (logand (ash z-value 1) c))
     (funcallf #'logand (reg-f cpu) z-msb)))
 
 (define-instruction rr-r #x2 (cpu opcode)
@@ -634,10 +634,10 @@ function which knows which direction to go in.
     (funcallf #'logior (reg-f cpu) z-lsb)))
 
 (define-instruction rr-indirect-hl #x2 (cpu opcode)
-  (let ((z-value (mem-hl cpu))
+  (let ((z-value (address-register-memory cpu))
         (z-lsb (logand z-value #x1))
         (c (flag-c cpu)))
-    (setf (mem-hl cpu) (logior (rshift z-value 1) (ash c-flag 7)))
+    (setf (address-register-memory cpu) (logior (rshift z-value 1) (ash c-flag 7)))
     (setf (reg-f cpu) (logior (reg-f cpu) z-lsb))))
 
 (define-instruction sla-r #x2 (cpu opcode)
@@ -648,9 +648,9 @@ function which knows which direction to go in.
     (funcallf #'logior (reg-f cpu) z-msb)))
 
 (define-instruction sla-indirect-hl #x2 (cpu opcode)
-  (let ((z-value (mem-hl cpu))
+  (let ((z-value (address-register-memory cpu))
         (z-msb (rshift (logand z-value #x80) 7)))
-    (setf (mem-hl cpu) (ash z-value 1))
+    (setf (address-register-memory cpu) (ash z-value 1))
     (funcallf #'logior (reg-f cpu) z-msb)))
 
 (define-instruction sra-r #x2 (cpu opcode)
@@ -660,8 +660,8 @@ function which knows which direction to go in.
     (setf (reg-f cpu) (logior (reg-f cpu) (logand #x1 z-value)))))
 
 (define-instruction sra-indirect-hl #x2 (cpu opcode)
-  (let ((z-value (mem-hl cpu)))
-    (setf (mem-hl cpu) (rshift z-value 1))
+  (let ((z-value (address-register-memory cpu)))
+    (setf (address-register-memory cpu) (rshift z-value 1))
     (setf (reg-f cpu) (logior (reg-f cpu) (logand #x1 z-value)))))
 
 (define-instruction sll-r #x2 (cpu opcode)
@@ -672,9 +672,9 @@ function which knows which direction to go in.
     (funcallf #'logior (reg-f cpu) #x1)))
 
 (define-instruction sll-indirect-hl #x2 (cpu opcode)
-  (let ((z-value (mem-hl cpu))
+  (let ((z-value (address-register-memory cpu))
         (z-msb (rshift (logand z-value #x80) 7)))
-    (setf (mem-hl cpu) (logior (ash z-value 1) #x1))
+    (setf (address-register-memory cpu) (logior (ash z-value 1) #x1))
     (funcallf #'logior (reg-f cpu) #x1)))
 
 (define-instruction srl-r #x2 (cpu opcode)
@@ -685,9 +685,9 @@ function which knows which direction to go in.
     (funcallf #'logior (reg-f cpu) z-lsb)))
 
 (define-instruction srl-indirect-hl #x2 (cpu opcode)
-  (let ((z-value (mem-hl cpu))
+  (let ((z-value (address-register-memory cpu))
         (z-lsb (logand z-value #x1)))
-    (setf (mem-hl cpu) (logior (rshift z-value 1) (ash #x1 7)))
+    (setf (address-register-memory cpu) (logior (rshift z-value 1) (ash #x1 7)))
     (funcallf #'logior (reg-f cpu) z-lsb)))
 
 (defun bit-test-flags (value position)
@@ -700,7 +700,7 @@ function which knows which direction to go in.
     (setf (reg-f cpu) (bit-test-flags z-value y))))
 
 (define-instruction bit-b-indirect-hl #x2 (cpu opcode)
-  (let ((z-value (mem-hl cpu))
+  (let ((z-value (address-register-memory cpu))
         (y (opcode-y opcode)))
     (setf (reg-f cpu) (bit-test-flags z-value y))))
 

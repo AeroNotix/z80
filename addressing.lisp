@@ -33,16 +33,36 @@
 (defparameter *16-bit-registers%* *16-bit-registers%-base*)
 
 (defparameter %base-addressing-mode%
-  (list '*8-bit-registers-base* '*16-bit-registers-base* '*16-bit-registers%-base*))
+  (list '*8-bit-registers-base* '*16-bit-registers-base* '*16-bit-registers%-base* ''reg-hl ''mem-hl))
 (defparameter %ix-addressing-mode%
-  (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix*))
+  (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix* ''reg-ix ''mem-ix))
 (defparameter %iy-addressing-mode%
-  (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy*))
+  (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy* ''reg-iy ''mem-iy))
+
+(defparameter *address-register* 'reg-hl)
+
+(defmethod address-register ((cpu cpu))
+  (funcall *address-register* cpu))
+
+(defmethod (setf address-register) (value (cpu cpu))
+  (funcall (setf-of *address-register*) value cpu))
+
+(defparameter *address-register-memory* 'mem-hl)
+
+(defmethod address-register-memory ((cpu cpu))
+  (funcall *address-register-memory* cpu))
+
+(defmethod (setf address-register-memory) (value (cpu cpu))
+  (setf (elt (ram cpu) (address-register cpu)) value))
 
 (defmacro with-addressing-mode (mode &body body)
   (let ((mode (case mode
                 (:base %base-addressing-mode%)
                 (:ix %ix-addressing-mode%)
                 (:iy %iy-addressing-mode%))))
-    `(destructuring-bind (*8-bit-registers* *16-bit-registers* *16-bit-registers%*) (list ,@mode)
+    `(destructuring-bind (*8-bit-registers*
+                          *16-bit-registers*
+                          *16-bit-registers%*
+                          *address-register*
+                          *address-register-memory*) (list ,@mode)
        ,@body)))
