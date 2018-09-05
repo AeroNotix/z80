@@ -201,6 +201,11 @@
 (defmethod reset-cpu ((cpu cpu))
   (setf (slot-value cpu 'r) #x00)
   (setf (slot-value cpu 'i) #x00)
+  (setf (reg-af cpu) #x0000
+        (reg-bc cpu) #x0000
+        (reg-hl cpu) #x0000
+        (reg-ix cpu) #x0000
+        (reg-iy cpu) #x0000)
   (setf (reg-pc cpu) #x0000))
 
 (defgeneric execute-next-instruction (cpu &optional instruction-table))
