@@ -1,6 +1,6 @@
 (in-package :z80)
 
-(defparameter logging-enabled nil)
+(defparameter logging-enabled t)
 
 (defparameter s-flag-pos 7)
 (defparameter z-flag-pos 6)
@@ -19,44 +19,6 @@
 (defparameter p-mask (ash 1 p-flag-pos))
 (defparameter n-mask (ash 1 n-flag-pos))
 (defparameter c-mask (ash 1 c-flag-pos))
-
-(defparameter *8-bit-registers-base*
-  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-h 'reg-l 'mem-hl 'reg-a))
-
-(defparameter *8-bit-registers-indexed-ix*
-  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-ixh 'reg-ixl 'ix-with-offset 'reg-a))
-
-(defparameter *8-bit-registers-indexed-iy*
-  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-iyh 'reg-iyl 'iy-with-offset 'reg-a))
-
-(defparameter *16-bit-registers-base*
-  (list 'reg-bc 'reg-de 'reg-hl 'reg-sp))
-
-(defparameter *16-bit-registers-indexed-ix*
-  (list 'reg-bc 'reg-de 'reg-ix 'reg-sp))
-
-(defparameter *16-bit-registers-indexed-iy*
-  (list 'reg-bc 'reg-de 'reg-iy 'reg-sp))
-
-(defparameter *16-bit-registers%-base*
-  (list 'reg-bc 'reg-de 'reg-hl 'reg-af))
-
-(defparameter *16-bit-registers%-indexed-ix*
-  (list 'reg-bc 'reg-de 'reg-ix 'reg-af))
-
-(defparameter *16-bit-registers%-indexed-iy*
-  (list 'reg-bc 'reg-de 'reg-iy 'reg-af))
-
-(defparameter *8-bit-registers* *8-bit-registers-base*)
-(defparameter *16-bit-registers* *16-bit-registers-base*)
-(defparameter *16-bit-registers%* *16-bit-registers%-base*)
-
-(defparameter %base-addressing-mode%
-  (list '*8-bit-registers-base* '*16-bit-registers-base* '*16-bit-registers%-base*))
-(defparameter %ix-addressing-mode%
-  (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix*))
-(defparameter %iy-addressing-mode%
-  (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy*))
 
 ;; put this somewhere better, external library?
 (defconstant single-float-positive-infinity

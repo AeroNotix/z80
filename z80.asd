@@ -18,6 +18,7 @@
   :components ((:file "package")
                (:file "peripherals")
                (:file "z80")
+               (:file "addressing")
                (:file "constants")
                (:file "macros")
                (:file "debug")

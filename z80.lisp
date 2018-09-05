@@ -99,8 +99,13 @@
 (define-register-operators hl% h% l%)
 (define-register-operators sp% s% s%)
 
-(defmethod ix-with-offset ((cpu cpu)))
-(defmethod iy-with-offset ((cpu cpu)))
+(defmethod ix-with-offset ((cpu cpu))
+  (let ((offset (read-byte-from-ram cpu)))
+    (elt (ram cpu) (+ offset (reg-ix cpu)))))
+
+(defmethod iy-with-offset ((cpu cpu))
+  (let ((offset (read-byte-from-ram cpu)))
+    (elt (ram cpu) (+ offset (reg-iy cpu)))))
 
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
   (replace (ram cpu) rom :start1 offset))

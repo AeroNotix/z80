@@ -19,11 +19,3 @@
 (defmacro updatef (place update-function)
   `(let ((value ,place))
      (setf ,place (funcall value))))
-
-(defmacro with-addressing-mode (mode &body body)
-  (let ((mode (case mode
-                (:base %base-addressing-mode%)
-                (:ix %ix-addressing-mode%)
-                (:iy %iy-addressing-mode%))))
-    `(destructuring-bind (*8-bit-registers* *16-bit-registers* *16-bit-registers%*) ,mode
-       ,@body)))
