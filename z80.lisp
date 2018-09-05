@@ -218,7 +218,8 @@
       (debug-cpu cpu))
     (funcall (microcode next-instruction) cpu opcode)
     (when (eq orig-pc (pc cpu))
-      (incf (pc cpu) (instruction-size instruction-table next-instruction)))))
+      (incf (pc cpu) (instruction-size instruction-table next-instruction)))
+    next-instruction))
 
 (defun emulate-rom (cpu rom-path &key (starting-pc 0) (max-instructions single-float-positive-infinity))
   (load-ram-from-rom-file cpu rom-path)
