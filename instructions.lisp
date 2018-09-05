@@ -716,12 +716,12 @@ function which knows which direction to go in.
 (define-instruction set-b-r #x2 (cpu opcode)
   (reset/set-bits cpu opcode #'set-bit-at))
 
-(define-instruction dd-prefix #x2 (cpu opcode)
+(define-instruction dd-prefix #x3 (cpu opcode)
   (with-addressing-mode :ix
     (incf (pc cpu))
     (execute-next-instruction cpu)))
 
-(define-instruction fd-prefix #x2 (cpu opcode)
+(define-instruction fd-prefix #x3 (cpu opcode)
   (with-addressing-mode :iy
     (incf (pc cpu))
     (execute-next-instruction cpu)))

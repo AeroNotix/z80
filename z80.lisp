@@ -100,11 +100,15 @@
 (define-register-operators sp% s% s%)
 
 (defmethod ix-with-offset ((cpu cpu))
+  (incf (pc cpu))
   (let ((offset (read-byte-from-ram cpu)))
+    (incf (pc cpu))
     (elt (ram cpu) (+ offset (reg-ix cpu)))))
 
 (defmethod iy-with-offset ((cpu cpu))
+  (incf (pc cpu))
   (let ((offset (read-byte-from-ram cpu)))
+    (incf (pc cpu))
     (elt (ram cpu) (+ offset (reg-iy cpu)))))
 
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))

@@ -80,7 +80,11 @@ register
                                         (list "cp-nz-test.rom" #'z80::reg-a 255)
                                         (list "cp-z-test.rom" #'z80::reg-a 255)
                                         (list "res-set.rom" #'z80::reg-a 170)
-                                        (list "index-addressing.rom" #'z80::reg-ix 65)
+                                        (list "index-addressing.rom" (lambda (cpu)
+                                                                       (list (z80::reg-ix cpu)
+                                                                             (z80::reg-a cpu)
+                                                                             (z80::reg-b cpu)))
+                                              (list 65535 65 66))
                                         (list "generated-res.rom" #'useful-registers
                                               (make-list 8 :initial-element #x00))
                                         (list "generated-set.rom" #'useful-registers

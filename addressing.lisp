@@ -20,13 +20,13 @@
   (list 'reg-bc 'reg-de 'reg-iy 'reg-sp))
 
 (defparameter *16-bit-registers%-base*
-  (list 'reg-bc 'reg-de 'reg-hl 'reg-af))
+  (list 'reg-bc% 'reg-de% 'reg-hl% 'reg-af%))
 
 (defparameter *16-bit-registers%-indexed-ix*
-  (list 'reg-bc 'reg-de 'reg-ix 'reg-af))
+  (list 'reg-bc% 'reg-de% 'reg-ix% 'reg-af%))
 
 (defparameter *16-bit-registers%-indexed-iy*
-  (list 'reg-bc 'reg-de 'reg-iy 'reg-af))
+  (list 'reg-bc% 'reg-de% 'reg-iy% 'reg-af%))
 
 (defparameter *8-bit-registers* *8-bit-registers-base*)
 (defparameter *16-bit-registers* *16-bit-registers-base*)
@@ -35,9 +35,9 @@
 (defparameter %base-addressing-mode%
   (list '*8-bit-registers-base* '*16-bit-registers-base* '*16-bit-registers%-base* ''reg-hl ''mem-hl))
 (defparameter %ix-addressing-mode%
-  (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix* ''reg-ix ''mem-ix))
+  (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix* ''reg-ix ''ix-with-offset))
 (defparameter %iy-addressing-mode%
-  (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy* ''reg-iy ''mem-iy))
+  (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy* ''reg-iy ''iy-with-offset))
 
 (defparameter *address-register* 'reg-hl)
 
