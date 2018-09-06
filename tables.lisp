@@ -663,5 +663,3 @@
 
 (defun find-rst-address (opcode-y)
   (elt rst-table opcode-y))
-
-(defparameter *instruction-table* unprefixed-table)
