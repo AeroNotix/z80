@@ -15,9 +15,10 @@
   (let ((microcode-fn-name
          (intern (concatenate 'string (symbol-name name) "-MICROCODE"))))
     `(flet ((,microcode-fn-name ,args
-              (progn (when logging-enabled
-                       (format t "Executing ~A~%" ,name))
-                     ,@body)))
+              (progn
+                (when logging-enabled
+                  (format t "Executing ~A~%" ,name))
+                ,@body)))
        (let* ((inst (make-instance 'instruction
                                    :name ',name
                                    :size ,size
@@ -38,14 +39,14 @@
 (defun opcode-y (opcode)
   (logand (rshift opcode 3) #x07))
 
-(defun opcode-z (opcode)
-  (logand opcode #x07))
-
 (defun opcode-p (opcode)
   (logand (rshift opcode 4) #x03))
 
 (defun opcode-q (opcode)
   (logand (rshift opcode 3) #x03))
+
+(defun opcode-z (opcode)
+  (logand opcode #x07))
 
 (defun push% (cpu &rest values)
   (loop for value in values
