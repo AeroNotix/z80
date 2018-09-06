@@ -170,7 +170,7 @@
   (setf (mem-hl+ cpu) (fetch-byte-from-ram cpu)))
 
 (define-instruction ld-sp-hl #x1 (cpu opcode)
-  (setf (reg-sp cpu) (reg-hl+-register cpu)))
+  (setf (reg-sp cpu) (reg-hl+ cpu)))
 
 (define-instruction inc-rr #x1 (cpu opcode)
   (let ((p (find-16-bit-register (opcode-p opcode))))

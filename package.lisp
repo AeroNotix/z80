@@ -45,7 +45,6 @@
    #:reg-hl%
    #:reg-hl+
    #:reg-hl+%
-   #:reg-hl+-register
    #:reg-i
    #:reg-ix
    #:reg-ix%
