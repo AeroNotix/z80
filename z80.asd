@@ -21,10 +21,10 @@
                (:file "macros")
                (:file "addressing")
                (:file "constants")
-               (:file "debug")
                (:file "instructions")
                (:file "tables")
-               (:file "bitmaths"))
+               (:file "bitmaths")
+               (:file "debug"))
   :depends-on (:alexandria
                :cl-fad
                :flexi-streams

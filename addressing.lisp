@@ -1,68 +1,51 @@
 (in-package :z80)
 
+(defparameter *addressing-mode* :base)
 
-(defparameter *8-bit-registers-base*
-  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-h 'reg-l 'mem-hl 'reg-a))
+(defmethod reg-hl+ ((cpu cpu))
+  (case *addressing-mode*
+    (:base (reg-hl cpu))
+    (:ix (reg-ix cpu))
+    (:iy (reg-iy cpu))))
 
-(defparameter *8-bit-registers-indexed-ix*
-  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-ixh 'reg-ixl 'ix-with-offset 'reg-a))
+(defmethod (setf reg-hl+) (value (cpu cpu))
+  (case *addressing-mode*
+    (:base (setf (reg-hl cpu) value))
+    (:ix (setf (reg-ix cpu) value))
+    (:iy (setf (reg-iy cpu) value))))
 
-(defparameter *8-bit-registers-indexed-iy*
-  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-iyh 'reg-iyl 'iy-with-offset 'reg-a))
+(defmethod index-register ((cpu cpu))
+  (let* ((offset (unsigned->signed (fetch-byte-from-ram cpu) 1))
+         (index (+ offset (reg-hl+ cpu))))
+    (incf (pc cpu) 2)
+    (elt (ram cpu) index)))
 
-(defparameter *16-bit-registers-base*
-  (list 'reg-bc 'reg-de 'reg-hl 'reg-sp))
+(defmethod (setf index-register) (value (cpu cpu))
+  (incf (pc cpu))
+  (let* ((offset (unsigned->signed (read-byte-from-ram cpu) 1))
+         (index (+ offset (reg-hl+ cpu))))
+    (incf (pc cpu))
+    (setf (elt (ram cpu) index) value)))
 
-(defparameter *16-bit-registers-indexed-ix*
-  (list 'reg-bc 'reg-de 'reg-ix 'reg-sp))
+(defmethod mem-hl+ ((cpu cpu))
+  (case *addressing-mode*
+    (:base (mem-hl cpu))
+    (t (index-register cpu))))
 
-(defparameter *16-bit-registers-indexed-iy*
-  (list 'reg-bc 'reg-de 'reg-iy 'reg-sp))
+(defmethod (setf mem-hl+) (value (cpu cpu))
+  (case *addressing-mode*
+    (:base (setf (mem-hl cpu) value))
+    (t (setf (index-register cpu) value))))
 
-(defparameter *16-bit-registers%-base*
+(defparameter *8-bit-registers*
+  (list 'reg-b 'reg-c 'reg-d 'reg-e 'reg-h 'reg-l 'mem-hl+ 'reg-a))
+
+(defparameter *16-bit-registers*
+  (list 'reg-bc 'reg-de 'reg-hl+ 'reg-sp))
+
+(defparameter *16-bit-registers%*
   (list 'reg-bc% 'reg-de% 'reg-hl% 'reg-af%))
 
-(defparameter *16-bit-registers%-indexed-ix*
-  (list 'reg-bc% 'reg-de% 'reg-ix% 'reg-af%))
-
-(defparameter *16-bit-registers%-indexed-iy*
-  (list 'reg-bc% 'reg-de% 'reg-iy% 'reg-af%))
-
-(defparameter *8-bit-registers* *8-bit-registers-base*)
-(defparameter *16-bit-registers* *16-bit-registers-base*)
-(defparameter *16-bit-registers%* *16-bit-registers%-base*)
-
-(defparameter %base-addressing-mode%
-  (list '*8-bit-registers-base* '*16-bit-registers-base* '*16-bit-registers%-base* ''reg-hl ''mem-hl))
-(defparameter %ix-addressing-mode%
-  (list '*8-bit-registers-indexed-ix* '*16-bit-registers-indexed-ix* '*16-bit-registers%-indexed-ix* ''reg-ix ''ix-with-offset))
-(defparameter %iy-addressing-mode%
-  (list '*8-bit-registers-indexed-iy* '*16-bit-registers-indexed-iy* '*16-bit-registers%-indexed-iy* ''reg-iy ''iy-with-offset))
-
-(defparameter *address-register* 'reg-hl)
-
-(defmethod address-register ((cpu cpu))
-  (funcall *address-register* cpu))
-
-(defmethod (setf address-register) (value (cpu cpu))
-  (funcall (setf-of *address-register*) value cpu))
-
-(defparameter *address-register-memory* 'mem-hl)
-
-(defmethod address-register-memory ((cpu cpu))
-  (funcall *address-register-memory* cpu))
-
-(defmethod (setf address-register-memory) (value (cpu cpu))
-  (setf (elt (ram cpu) (address-register cpu)) value))
-
 (defmacro with-addressing-mode (mode &body body)
-  (let ((mode (case mode
-                (:base %base-addressing-mode%)
-                (:ix %ix-addressing-mode%)
-                (:iy %iy-addressing-mode%))))
-    `(destructuring-bind (*8-bit-registers*
-                          *16-bit-registers*
-                          *16-bit-registers%*
-                          *address-register*
-                          *address-register-memory*) (list ,@mode)
-       ,@body)))
+  `(let ((*addressing-mode* ,mode))
+     ,@body))

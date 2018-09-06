@@ -196,16 +196,19 @@
         (reg-iy cpu) #x0000)
   (setf (reg-pc cpu) #x0000))
 
-(defgeneric execute-next-instruction (cpu &optional instruction-table))
+(defmethod execute-instruction ((cpu cpu) next-instruction opcode)
+  (funcall (microcode next-instruction) cpu opcode))
 
-(defmethod execute-next-instruction ((cpu cpu) &optional (instruction-table unprefixed-table))
+(defgeneric execute-next-instruction (cpu &optional instruction-table handle-pc))
+
+(defmethod execute-next-instruction ((cpu cpu) &optional (instruction-table unprefixed-table) (handle-pc t))
   (let* ((opcode (elt (ram cpu) (pc cpu)))
          (next-instruction (next-instruction instruction-table opcode))
          (orig-pc (pc cpu)))
     (when logging-enabled
       (debug-cpu cpu))
-    (funcall (microcode next-instruction) cpu opcode)
-    (when (eq orig-pc (pc cpu))
+    (execute-instruction cpu next-instruction opcode)
+    (when (and (eq orig-pc (pc cpu)) handle-pc)
       (incf (pc cpu) (instruction-size instruction-table next-instruction)))
     next-instruction))
 
