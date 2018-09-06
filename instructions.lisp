@@ -13,8 +13,10 @@
 
 (defmacro define-instruction (name size args &body body)
   (let ((microcode-fn-name
-         (intern (concatenate 'string (symbol-name name) "-MICROCODE"))))
-    `(flet ((,microcode-fn-name ,args
+         (intern (concatenate 'string (symbol-name name) "-MICROCODE")))
+        (cpu-gensym (gensym "CPU"))
+        (opcode-gensym (gensym "OPCODE")))
+    `(flet ((,microcode-fn-name (,cpu-gensym ,opcode-gensym)
               (progn
                 (when logging-enabled
                   (format t "Executing ~A~%" ,name))

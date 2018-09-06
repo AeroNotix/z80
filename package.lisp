@@ -6,10 +6,12 @@
 
    ;; CPU
    #:cpu
+   #:load-ram-from-rom-file
    #:emulate
    #:emulate-rom
    #:execute-instruction
    #:execute-next-instruction
+   #:halted?
    #:pc
    #:ram
    #:reset-cpu
@@ -65,4 +67,11 @@
    #:reg-s%
    #:reg-sp
    #:reg-sp%
-   #:mem-hl))
+   #:mem-hl
+
+   ;; Flags
+   #:flag-c
+   #:flag-h
+   #:flag-p
+   #:flag-s
+   #:flag-z))
