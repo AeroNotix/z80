@@ -2,9 +2,13 @@
 
 (defclass instruction-table ()
   ((prefixed-p :initarg :prefixed-p :accessor prefixed-p :initform nil)
+   (name :initarg :name :accessor name)
    (instructions :initarg :instructions
                  :accessor instructions
                  :initform (error "An instruction set is required for an instruction table"))))
+
+(defmethod print-object ((it instruction-table) out)
+  (format out "#<INSTRUCTION-TABLE {~A:~A}>" (name it) (prefixed-p it)))
 
 (defmethod next-instruction ((it instruction-table) opcode)
   (elt (instructions it) opcode))
@@ -17,6 +21,7 @@
 (defparameter unprefixed-table
   (make-instance 'instruction-table
                  :prefixed-p nil
+                 :name :base
                  :instructions
                  (make-array 256 :initial-contents
                              (list
@@ -313,6 +318,7 @@
 (defparameter ed-prefix-table
   (make-instance 'instruction-table
                  :prefixed-p t
+                 :name :ed
                  :instructions
                  (make-array 256 :initial-contents
                              ;; unfuck this
@@ -359,6 +365,7 @@
 (defparameter cb-prefix-table
   (make-instance 'instruction-table
                  :prefixed-p t
+                 :name :cb
                  :instructions
                  (make-array 256 :initial-contents
                              (list
