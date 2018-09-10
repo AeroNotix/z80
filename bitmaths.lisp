@@ -23,13 +23,6 @@
   (ash integer (- 0 count)))
 
 (defun 8-bit-parity (x)
-  (loop
-     with y = (logxor x (rshift x 1))
-     for i from 2 to 7
-     do (setq y (logxor y (rshift y i)))
-     return (logand y 1)))
-
-(defun 8-bit-parity (x)
   (if (evenp (logcount x)) 1 0))
 
 (defun ~ (x)
