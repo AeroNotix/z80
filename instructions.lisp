@@ -9,7 +9,7 @@
    (microcode :initarg :microcode :accessor microcode)))
 
 (defmethod print-object ((instr instruction) out)
-  (format out "<INSTRUCTION {~A}>" (name instr)))
+  (format out "#<INSTRUCTION {~A:~A}>" (name instr) (size instr)))
 
 (defmacro define-instruction (name size args &body body)
   (let ((microcode-fn-name
