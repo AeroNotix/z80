@@ -1,3 +1,4 @@
 *.bin
 *.lst
 *.rom
+coverage/**
