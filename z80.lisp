@@ -97,7 +97,7 @@
 (define-register-operators bc% b% c%)
 (define-register-operators de% d% e%)
 (define-register-operators hl% h% l%)
-(define-register-operators sp% s% s%)
+(define-register-operators sp% s% sp%)
 
 (defmethod load-ram-from-seq ((cpu cpu) rom &key (offset 0))
   (replace (ram cpu) rom :start1 offset))
