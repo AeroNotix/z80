@@ -15,7 +15,3 @@
 
 (defmacro decf-of (place)
   `(fdefinition `(decf ,,place)))
-
-(defmacro updatef (place update-function)
-  `(let ((value ,place))
-     (setf ,place (funcall value))))
