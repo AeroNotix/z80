@@ -28,7 +28,6 @@
   :depends-on (:alexandria
                :cl-fad
                :flexi-streams
-               :place-utils
                :z80/asm))
 
 (defsystem #:z80/tests

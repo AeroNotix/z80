@@ -43,25 +43,29 @@ register
         (cpu (make-instance 'z80:cpu
                             :peripherals (list (make-instance 'fake-peripheral)))))
     (z80:emulate-rom cpu rom)
-    (is (equalp (funcall value-extractor cpu) expected-value))))
+    (is (equalp (funcall value-extractor cpu) expected-value)
+        (format nil "~A did not produce the expected-value~%" rom-filename))))
 
 (defun test-output-assertion-rom (rom-filename expected-output &optional (starting-pc 0))
   (let ((rom (get-rom rom-filename))
         (cpu (make-instance 'z80:cpu
                             :peripherals (list (make-instance 'simple-io-peripheral)))))
-    (is (equal expected-output (with-stdout-to-string (z80:emulate-rom cpu rom :starting-pc starting-pc))))))
+    (is (equal expected-output (with-stdout-to-string (z80:emulate-rom cpu rom :starting-pc starting-pc)))
+        (format nil "~A did not produce the expected-value~%" rom-filename))))
 
 (defun test-input-assertion-rom (rom-filename expected-input start end &optional (starting-pc 0))
   (let* ((rom (get-rom rom-filename))
          (sis (make-string-input-stream expected-input))
          (cpu (make-instance 'z80:cpu
                              :peripherals (list (make-instance 'simple-io-peripheral :input-stream sis)))))
-    (is (equalp (subseq (ram (z80:emulate-rom cpu rom :starting-pc starting-pc)) start end) expected-input))))
+    (is (equalp (subseq (ram (z80:emulate-rom cpu rom :starting-pc starting-pc)) start end) expected-input)
+        (format nil "~A did not produce the expected-value~%" rom-filename))))
 
 (defun test-ram-assertion-rom (rom-filename expected-value start end)
   (let ((rom (get-rom rom-filename))
         (cpu (make-instance 'z80:cpu)))
-    (is (equalp (subseq (ram (z80:emulate-rom cpu rom)) start end) expected-value))))
+    (is (equalp (subseq (ram (z80:emulate-rom cpu rom)) start end) expected-value)
+        (format nil "~A did not produce the expected-value~%" rom-filename))))
 
 (defun apply-tests (asserter args)
   (handler-bind ((warning (lambda (w) (declare (ignore w)) (muffle-warning))))
@@ -91,10 +95,7 @@ register
                                         (list "generated-res.rom" #'useful-registers
                                               (make-list 8 :initial-element #x00))
                                         (list "generated-set.rom" #'useful-registers
-                                              (make-list 8 :initial-element #xFF))
-                                        (list "index-offset-addressing.rom"
-                                              (lambda (cpu) (list (reg-a cpu) (reg-b cpu) (reg-c cpu)))
-                                              (list #x41 #x42 #x3F)))))
+                                              (make-list 8 :initial-element #xFF)))))
     (apply-tests #'test-register-assertion-rom roms-and-expected-values)))
 
 (def-test expected-output-roms (:suite roms)

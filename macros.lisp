@@ -15,3 +15,6 @@
 
 (defmacro decf-of (place)
   `(fdefinition `(decf ,,place)))
+
+(defmacro funcallf (f place &rest args)
+  `(setf ,place (apply ,f ,place (list ,@args))))
